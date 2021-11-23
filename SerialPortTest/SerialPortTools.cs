@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO.Ports;
 using System.Linq;
 using System.Timers;
@@ -60,7 +61,7 @@ namespace SerialPortTest
             else
             {
                 LastUsedPortID = ComPortID;
-                ComPort = new SerialPort(ComPortID, 9600, Parity.None, 8, StopBits.One);
+                ComPort = new SerialPort(ComPortID, 9600, Parity.None, 8, System.IO.Ports.StopBits.One);
 
                 Timer timer = new(30000);
                 timer.Elapsed += Timer_Elapsed;
@@ -144,7 +145,30 @@ namespace SerialPortTest
             }
         }
 
+        public static readonly IList<int> BaudRates = new ReadOnlyCollection<int>(
+            new List<int> {
+                110,
+                300,
+                600,
+                1200,
+                2400,
+                4800,
+                9600,
+                19200
+            });
 
+        public static readonly IList<int> DataBits = new ReadOnlyCollection<int>(
+            new List<int> {
+                6,
+                7,
+                8
+            });
+
+        public static readonly IList<int> StopBits = new ReadOnlyCollection<int>(
+            new List<int> {
+                1,
+                2
+            });
     }
 
     public class SerialPortWrapper
@@ -155,7 +179,7 @@ namespace SerialPortTest
             Index = index;
         }
 
-        internal string SerialPortID { get; set; }
+        public string SerialPortID { get; set; }
         internal int Index { get; set; }
 
         public static IEnumerable<SerialPortWrapper> GetSerialPorts()
