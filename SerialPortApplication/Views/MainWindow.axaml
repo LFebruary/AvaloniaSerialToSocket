@@ -1,0 +1,173 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SerialPortApplication.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="SerialPortApplication.Views.MainWindow"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="SerialPortApplication">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+	
+	<Grid Margin="8">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="1.4*" />
+			<ColumnDefinition Width=".6*" />
+			<ColumnDefinition Width=".6*" />
+			<ColumnDefinition Width="2*" />
+		</Grid.ColumnDefinitions>
+		
+		<Grid.RowDefinitions>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="*" />
+		</Grid.RowDefinitions>
+		
+		<StackPanel Grid.Column="0" Orientation="Vertical" HorizontalAlignment="Stretch" Grid.Row="0" Margin="0,0,0,16" VerticalAlignment="Stretch"> 
+			<Label Content="Basic" FontSize="16" Margin="0,0,0,4"/>
+			<Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" Margin="4" Height="175">
+				<Grid Margin="8,8,0,0" VerticalAlignment="Center">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto" />
+						<ColumnDefinition Width="Auto" />
+					</Grid.ColumnDefinitions>
+				
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+					</Grid.RowDefinitions>
+					<Label Content="_Port:" Grid.Column="0" VerticalAlignment="Center" Grid.Row="0" FontSize="12"/>
+					<ComboBox PlaceholderText="Select COM port" Grid.Column="2" Width="140" HorizontalContentAlignment="Stretch" Margin="16,0,0,0" Grid.Row="0" FontSize="12"/>
+				
+					<Label Content="_Baud:" Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" Margin="0,16,0,0" FontSize="12"/>
+					<ComboBox PlaceholderText="Select baud rate" Grid.Row="1" Width="140" Grid.Column="2" Margin="16,16,0,0" FontSize="12"/>
+				
+					<Label Content="_Databits:" Grid.Column="0" Grid.Row="2" VerticalAlignment="Center" Margin="0,16,0,0" FontSize="12"/>
+					<ComboBox PlaceholderText="Select databits" Grid.Row="2" Width="140" Grid.Column="2" Margin="16,16,0,0" FontSize="12"/>
+				
+					<Label Content="_Stop bits:" Grid.Column="0" Grid.Row="3" VerticalAlignment="Center" Margin="0,16,0,8" FontSize="12"/>
+					<ComboBox PlaceholderText="Select stop bits" Grid.Row="3" Width="140" Grid.Column="2" Margin="16,16,0,8" FontSize="12"/>
+				</Grid>
+			</Border>
+		</StackPanel>
+		
+		<StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Stretch" Grid.Row="0" Margin="0,0,0,16" VerticalAlignment="Stretch">
+			<Label Content="Parity" FontSize="16" Margin="0,0,0,4"/>
+			<Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" Margin="4" Height="175">
+				<Grid Margin="8,8,0,0">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto" />
+						<ColumnDefinition Width="Auto" />
+					</Grid.ColumnDefinitions>
+				
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+					</Grid.RowDefinitions>
+				
+					<RadioButton GroupName="Parity" Content="Even" Grid.Row="0" FontSize="12" Margin="0,0,0,8"/>
+					<RadioButton GroupName="Parity" Content="Odd" Grid.Row="1" FontSize="12" Margin="0,0,0,8"/>
+					<RadioButton GroupName="Parity" Content="None" Grid.Row="2" FontSize="12" Margin="0,0,0,8" />
+				</Grid>
+			</Border>
+		</StackPanel>
+		
+		<StackPanel Grid.Column="2" Orientation="Vertical" HorizontalAlignment="Stretch" Grid.Row="0" Margin="0,0,0,16" VerticalAlignment="Stretch">
+			<Label Content="Flow control" FontSize="16" Margin="0,0,0,4"/>
+			<Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" Margin="4" Height="175">
+				<Grid Margin="8,8,0,0">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto" />
+						<ColumnDefinition Width="Auto" />
+					</Grid.ColumnDefinitions>
+				
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+					</Grid.RowDefinitions>
+				
+					<RadioButton GroupName="FlowControl" Content="cts/rts" Grid.Row="0" FontSize="12" Margin="0,0,0,8"/>
+					<RadioButton GroupName="FlowControl" Content="dsr/dtr" Grid.Row="1" FontSize="12" Margin="0,0,0,8"/>
+					<RadioButton GroupName="FlowControl" Content="xon/xoff" Grid.Row="2" FontSize="12" Margin="0,0,0,8"/>
+				</Grid>
+			</Border>
+		</StackPanel>
+		
+		<StackPanel Grid.Column="3" Orientation="Vertical" HorizontalAlignment="Stretch" Grid.Row="0" Margin="0,0,0,16" VerticalAlignment="Stretch">
+			<Label Content="Scale stability" FontWeight="Bold" FontSize="16" Margin="0,0,0,4"/>
+			<Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" Margin="4" Height="175">
+				<Grid Margin="8,8,0,0">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto" />
+						<ColumnDefinition Width="Auto" />
+					</Grid.ColumnDefinitions>
+				
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+					</Grid.RowDefinitions>
+				
+					<RadioButton GroupName="StabilityIndicator" Grid.Row="0" Grid.Column="0" Content="Stability indicator" FontSize="12" Margin="0,0,0,8"/>
+					<RadioButton GroupName="StabilityIndicator" Grid.Row="0" Grid.Column="1" Content="Sequence of identical readings" FontSize="12" Margin="8,0,0,8"/>
+				
+					<StackPanel Grid.Row="1" Grid.Column="0" Orientation="Vertical" Margin="0,0,0,8">
+						<Label Content="Character snippet" FontSize="12"/>
+						<TextBox Text="ST" FontSize="12"/>
+					</StackPanel> 
+				
+					<StackPanel Grid.Row="1" Grid.Column="1" Orientation="Vertical" Margin="8,0,0,8">
+						<Label Content="Number of readings" VerticalAlignment="Center" Margin="4,0,0,0" FontSize="12"/>
+						<ButtonSpinner Content="5" FontSize="12"/>
+					</StackPanel> 
+				
+					<StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="0" Margin="0,0,0,8">
+						<Label Content="Starts at" FontSize="12" VerticalAlignment="Center"/>
+						<ButtonSpinner Content="1" FontSize="12"/>
+					</StackPanel>
+				</Grid>
+			</Border>
+		</StackPanel>
+		
+		
+		<StackPanel Grid.Column="0" Grid.Row="1" Orientation="Vertical" HorizontalAlignment="Stretch" Margin="0,0,0,8">
+			<Label Content="Scale string settings" FontSize="16" FontWeight="Bold" Margin="0,0,0,4"/>
+			<Border  BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" Margin="4">
+				<Grid Margin="8,8,0,0">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="6*" />
+						<ColumnDefinition Width="3*" />
+					</Grid.ColumnDefinitions>
+				
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+					</Grid.RowDefinitions>
+				
+					<Label Content="Weight start position" Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,0,8"/>
+					<ButtonSpinner Content="11" Grid.Column="1" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,0,8"/>
+				
+					<Label Content="Weight end position" Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,0,8"/>
+					<ButtonSpinner Content="19" Grid.Column="1" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,0,8"/>
+
+					<StackPanel Orientation="Horizontal" Grid.ColumnSpan="2" Grid.Row="2" Margin="0,0,0,8">
+						<CheckBox VerticalAlignment="Center"/>
+						<Label Content="String must be" VerticalAlignment="Center"/>
+						<ButtonSpinner Content="17" VerticalAlignment="Center"/>
+						<Label Content="characters long" VerticalAlignment="Center"/>
+					</StackPanel>
+				</Grid>
+			</Border>
+		</StackPanel>
+		
+	</Grid>
+	
+	
+</Window>

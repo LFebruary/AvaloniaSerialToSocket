@@ -41,7 +41,7 @@ namespace SerialPortTest
         static IPEndPoint   endPoint    = new(ipAddress, port);
         public static void StartServer()
         {
-            Console.WriteLine($"Listening on {ipAddress}:{port}");
+            SerialPortTools.ConsoleCallback.Invoke($"Listening on {ipAddress}:{port}", Extensions.ConsoleAlertLevel.Info);
 
             try
             {
@@ -57,7 +57,7 @@ namespace SerialPortTest
 
         public static void SendData()
         {
-            Console.WriteLine("Waiting for connection...");
+            SerialPortTools.ConsoleCallback.Invoke("Waiting for connection...", Extensions.ConsoleAlertLevel.Info);
 
             try
             {

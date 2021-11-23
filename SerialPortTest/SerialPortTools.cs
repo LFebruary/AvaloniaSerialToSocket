@@ -6,9 +6,22 @@ using System.Timers;
 
 namespace SerialPortTest
 {
-    internal static partial class SerialPortTools
+    public static partial class SerialPortTools
     {
         public static string LastUsedPortID = string.Empty;
+
+        private static Action<string, Extensions.ConsoleAlertLevel> _consoleCallback = (_, _) => { };
+        public static Action<string, Extensions.ConsoleAlertLevel> ConsoleCallback
+        {
+            get => _consoleCallback;
+            set
+            {
+                if (_consoleCallback != value)
+                {
+                    _consoleCallback = value;
+                }
+            }
+        }
 
         private static string _lastSerialReading;
         public static string LastSerialReading
@@ -17,7 +30,7 @@ namespace SerialPortTest
             set
             {
                 _lastSerialReading = value;
-                Extensions.CatchSerialPortException(SocketTools.SendData);
+                Extensions.CatchSerialPortException(SocketTools.SendData, ConsoleCallback);
             }
         }
 #nullable enable
@@ -28,9 +41,9 @@ namespace SerialPortTest
         {
             static void Timer_Elapsed(object sender, ElapsedEventArgs e)
             {
-                Console.WriteLine(Extensions.FillBlanks("", 24, '-'));
-                Console.WriteLine($"Last used COM Port: {LastUsedPortID}");
-                Console.WriteLine(Extensions.FillBlanks("", 24, '-'));
+                ConsoleCallback.Invoke(Extensions.FillBlanks("", 24, '-'), Extensions.ConsoleAlertLevel.Info);
+                ConsoleCallback.Invoke($"Last used COM Port: {LastUsedPortID}", Extensions.ConsoleAlertLevel.Info);
+                ConsoleCallback.Invoke(Extensions.FillBlanks("", 24, '-'), Extensions.ConsoleAlertLevel.Info);
             }
 
             string ComPortID;
@@ -72,7 +85,7 @@ namespace SerialPortTest
             var data = ComPort.ReadExisting();
             if (!string.IsNullOrWhiteSpace(data))
             {
-                Console.WriteLine(data);
+                ConsoleCallback.Invoke($"Received data from COM port: {data}", Extensions.ConsoleAlertLevel.Info);
                 LastSerialReading = data;
                 //Now here is where we need to add the code to broadcast message to receiver, pre-existing code not working properly.
             }
