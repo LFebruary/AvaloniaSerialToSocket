@@ -34,6 +34,8 @@ namespace SerialPortTest
                 Extensions.CatchSerialPortException(SocketTools.SendData, ConsoleCallback);
             }
         }
+
+        
 #nullable enable
         private static SerialPort? ComPort = null;
         #nullable restore
@@ -157,6 +159,8 @@ namespace SerialPortTest
                 19200
             });
 
+        public static readonly int DefaultBaudRate = 9600;
+
         public static readonly IList<int> DataBits = new ReadOnlyCollection<int>(
             new List<int> {
                 6,
@@ -164,11 +168,37 @@ namespace SerialPortTest
                 8
             });
 
+        public static readonly int DefaultDatabits = 8;
+
         public static readonly IList<int> StopBits = new ReadOnlyCollection<int>(
             new List<int> {
                 1,
                 2
             });
+
+        public static readonly int DefaultStopbits                          = 1;
+
+        public static readonly int DefaultStabilityIndicatorStartPosition   = 0;
+        public static readonly int DefaultIdenticalReadingQuantity          = 5;
+        public static readonly int DefaultScaleStringWeightStartPosition    = 1;
+        public static readonly int DefaultScaleStringWeightEndPosition      = 5;
+        public static readonly int DefaultScaleStringMinimumLength          = 17;
+
+        public const string DefaultParity = NoParity;
+        public const string DefaultStabilityIndicatorSnippet = "ST";
+
+        public static readonly IList<string> ParityValues = new ReadOnlyCollection<string>(
+            new List<string> {
+                EvenParity,
+                OddParity,
+                NoParity
+            });
+
+        public const string EvenParity  = "Even";
+        public const string OddParity   = "Odd";
+        public const string NoParity    = "None";
+
+        
     }
 
     public class SerialPortWrapper

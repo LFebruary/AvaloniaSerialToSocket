@@ -48,10 +48,10 @@
 					<ComboBox PlaceholderText="Select baud rate" Grid.Row="1" Width="140" Grid.Column="2" Margin="16,16,0,0" FontSize="12" SelectedItem="{Binding SelectedBaudRate}" Items="{Binding BaudRates}"/>
 				
 					<Label Content="_Databits:" Grid.Column="0" Grid.Row="2" VerticalAlignment="Center" Margin="0,16,0,0" FontSize="12"/>
-					<ComboBox PlaceholderText="Select databits" Grid.Row="2" Width="140" Grid.Column="2" Margin="16,16,0,0" FontSize="12"/>
+					<ComboBox PlaceholderText="Select databits" Items="{Binding DataBits}" SelectedItem="{Binding SelectedDataBits}" Grid.Row="2" Width="140" Grid.Column="2" Margin="16,16,0,0" FontSize="12"/>
 				
 					<Label Content="_Stop bits:" Grid.Column="0" Grid.Row="3" VerticalAlignment="Center" Margin="0,16,0,8" FontSize="12"/>
-					<ComboBox PlaceholderText="Select stop bits" Grid.Row="3" Width="140" Grid.Column="2" Margin="16,16,0,8" FontSize="12"/>
+					<ComboBox PlaceholderText="Select stop bits" Items="{Binding StopBits}" SelectedItem="{Binding SelectedStopBits}" Grid.Row="3" Width="140" Grid.Column="2" Margin="16,16,0,8" FontSize="12"/>
 				</Grid>
 			</Border>
 		</StackPanel>
@@ -71,9 +71,9 @@
 						<RowDefinition Height="Auto" />
 					</Grid.RowDefinitions>
 				
-					<RadioButton GroupName="Parity" Content="Even" Grid.Row="0" FontSize="12" Margin="0,0,0,8"/>
-					<RadioButton GroupName="Parity" Content="Odd" Grid.Row="1" FontSize="12" Margin="0,0,0,8"/>
-					<RadioButton GroupName="Parity" Content="None" Grid.Row="2" FontSize="12" Margin="0,0,0,8" />
+					<RadioButton GroupName="Parity" Content="Even" Grid.Row="0" FontSize="12" Margin="0,0,0,8" IsChecked="{Binding EvenParityChecked}"/>
+					<RadioButton GroupName="Parity" Content="Odd" Grid.Row="1" FontSize="12" Margin="0,0,0,8" IsChecked="{Binding OddParityChecked}"/>
+					<RadioButton GroupName="Parity" Content="None" Grid.Row="2" FontSize="12" Margin="0,0,0,8" IsChecked="{Binding NoneParityChecked}"/>
 				</Grid>
 			</Border>
 		</StackPanel>
@@ -115,22 +115,22 @@
 						<RowDefinition Height="Auto" />
 					</Grid.RowDefinitions>
 				
-					<RadioButton GroupName="StabilityIndicator" Grid.Row="0" Grid.Column="0" Content="Stability indicator" FontSize="12" Margin="0,0,0,8"/>
-					<RadioButton GroupName="StabilityIndicator" Grid.Row="0" Grid.Column="1" Content="Sequence of identical readings" FontSize="12" Margin="8,0,0,8"/>
+					<RadioButton IsChecked="{Binding StabilityIndicatorActive}" GroupName="ScaleStability" Grid.Row="0" Grid.Column="0" Content="Stability indicator" FontSize="12" Margin="0,0,0,8"/>
+					<RadioButton IsChecked="{Binding SequenceOfIdenticalReadingsActive}" GroupName="ScaleStability" Grid.Row="0" Grid.Column="1" Content="Sequence of identical readings" FontSize="12" Margin="8,0,0,8"/>
 				
 					<StackPanel Grid.Row="1" Grid.Column="0" Orientation="Vertical" Margin="0,0,0,8">
 						<Label Content="Character snippet" FontSize="12"/>
-						<TextBox Text="ST" FontSize="12"/>
+						<TextBox IsEnabled="{Binding StabilityIndicatorActive}" Text="{Binding StabilityIndicatorSnippet}" FontSize="12"/>
 					</StackPanel> 
 				
 					<StackPanel Grid.Row="1" Grid.Column="1" Orientation="Vertical" Margin="8,0,0,8">
 						<Label Content="Number of readings" VerticalAlignment="Center" Margin="4,0,0,0" FontSize="12"/>
-						<ButtonSpinner Content="5" FontSize="12"/>
+						<ButtonSpinner IsEnabled="{Binding SequenceOfIdenticalReadingsActive}" Content="{Binding NumberOfIdenticalReadings}" FontSize="12"/>
 					</StackPanel> 
 				
 					<StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="0" Margin="0,0,0,8">
 						<Label Content="Starts at" FontSize="12" VerticalAlignment="Center"/>
-						<ButtonSpinner Content="1" FontSize="12"/>
+						<ButtonSpinner IsEnabled="{Binding StabilityIndicatorActive}" Content="{Binding StabilityIndicatorStartingPosition}" FontSize="12"/>
 					</StackPanel>
 				</Grid>
 			</Border>
@@ -139,7 +139,7 @@
 		
 		<StackPanel Grid.Column="3" Grid.ColumnSpan="2" Grid.Row="0" Orientation="Vertical" HorizontalAlignment="Stretch" Margin="0,0,0,8">
 			<Label Content="Scale string settings" FontSize="16" FontWeight="Bold" Margin="0,0,0,4"/>
-			<Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" Margin="4" Height="150">
+			<Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" Margin="4" Height="170">
 				<Grid Margin="8,8,0,0">
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="6*" />
