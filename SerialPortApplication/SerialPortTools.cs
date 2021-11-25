@@ -1,15 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.IO.Ports;
 using System.Linq;
 using System.Timers;
+using static SerialPortApplication.CustomSettings;
 
-namespace SerialPortTest
+namespace SerialPortApplication
 {
     public static partial class SerialPortTools
     {
-        public static string LastUsedPortID = string.Empty;
+        public static string    LastUsedPortID      => GetSetting(StringSetting.ComPort);
+        public static int       LastUsedBaudRate    => GetSetting(IntSetting.BaudRate);
 
         private static Action<string, Extensions.ConsoleAlertLevel> _consoleCallback = (_, _) => { };
         public static Action<string, Extensions.ConsoleAlertLevel> ConsoleCallback
@@ -24,10 +28,10 @@ namespace SerialPortTest
             }
         }
 
-        private static string _lastSerialReading;
+        private static string? _lastSerialReading;
         public static string LastSerialReading
         {
-            get => _lastSerialReading;
+            get => _lastSerialReading ?? "";
             set
             {
                 _lastSerialReading = value;
@@ -35,10 +39,28 @@ namespace SerialPortTest
             }
         }
 
-        
+
+        private static Parity? LastUsedParity => GetSetting(StringSetting.Parity) switch
+        {
+            NoParity => Parity.None,
+            EvenParity => Parity.Even,
+            OddParity => Parity.Odd,
+            _ => null,
+        };
+
+        public static int LastUsedDataBits => GetSetting(IntSetting.Databits);
+
+        public static StopBits? LastUsedStopBits => GetSetting(IntSetting.Stopbits) switch
+        {
+            1 => System.IO.Ports.StopBits.One,
+            2 => System.IO.Ports.StopBits.Two,
+            _ => null,
+        };
+
 #nullable enable
         private static SerialPort? ComPort = null;
-        #nullable restore
+        private static Timer? Timer = null;
+#nullable restore
 
         public static void GetPortAndStartListening()
         {
@@ -49,100 +71,78 @@ namespace SerialPortTest
                 ConsoleCallback.Invoke(Extensions.FillBlanks("", 24, '-'), Extensions.ConsoleAlertLevel.Info);
             }
 
-            string ComPortID;
-            do
+            if (LastUsedParity != null && LastUsedParity is Parity castedParity)
             {
-                ComPortID = PromptUserToSelectCOMPort();
-
-            } while (string.IsNullOrEmpty(ComPortID) && ComPortID != "Exit");
-
-            if (ComPortID == "Exit")
-            {
-                Environment.Exit(0);
+                if (LastUsedStopBits != null && LastUsedStopBits is StopBits castedStopBits)
+                {
+                    Debug.WriteLine("Before ComPort create.");
+                    ComPort = new SerialPort(LastUsedPortID, LastUsedBaudRate, castedParity, LastUsedDataBits, castedStopBits);
+                    Debug.WriteLine("After ComPort create.");
+                }
+                else
+                {
+                    throw new SerialPortException("Invalid value for stop bits encountered");
+                }
             }
             else
             {
-                LastUsedPortID = ComPortID;
-                ComPort = new SerialPort(ComPortID, 9600, Parity.None, 8, System.IO.Ports.StopBits.One);
+                throw new SerialPortException("Invalid value for parity encountered");
+            }
+            
+            if (ComPort != null)
+            {
+                Timer = new(30000);
+                Timer.Elapsed -= Timer_Elapsed;
+                Timer.Elapsed += Timer_Elapsed;
+                Timer.AutoReset = true;
+                Timer.Enabled = true;
 
-                Timer timer = new(30000);
-                timer.Elapsed += Timer_Elapsed;
-                timer.AutoReset = true;
-                timer.Enabled = true;
-
+                Debug.WriteLine("Before StartListeningOnSelectedPort()");
                 StartListeningOnSelectedPort();
-                Console.ReadLine();
+                Debug.WriteLine("After StartListeningOnSelectedPort()");
+            }
+        }
+
+        public static void StopListeningOnPort()
+        {
+            if (ComPort?.IsOpen == true)
+            {
+                ComPort.Close();
             }
         }
 
         private static void StartListeningOnSelectedPort()
         {
-            ComPort.Open();
-            SocketTools.StartServer();
-            ComPort.DataReceived -= ComPort_DataReceived;
-            ComPort.DataReceived += ComPort_DataReceived;
+            if (ComPort != null)
+            {
+                Debug.WriteLine("Before ComPort.Open()");
+                ComPort.Open();
+                Debug.WriteLine("After ComPort.Open()");
+
+                Debug.WriteLine("Before ComPort.DataReceived -= ComPort_DataReceived");
+                ComPort.DataReceived -= ComPort_DataReceived;
+                Debug.WriteLine("After ComPort.DataReceived -= ComPort_DataReceived");
+
+                Debug.WriteLine("Before ComPort.DataReceived += ComPort_DataReceived");
+                ComPort.DataReceived += ComPort_DataReceived;
+                Debug.WriteLine("After ComPort.DataReceived += ComPort_DataReceived");
+            }
         }
 
         private static void ComPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            var data = ComPort.ReadExisting();
-            if (!string.IsNullOrWhiteSpace(data))
+            if (ComPort != null)
             {
-                ConsoleCallback.Invoke($"Received data from COM port: {data}", Extensions.ConsoleAlertLevel.Info);
-                LastSerialReading = data;
-                //Now here is where we need to add the code to broadcast message to receiver, pre-existing code not working properly.
-            }
-        }
+                Debug.WriteLine("Before var data = ComPort.ReadExisting();");
+                var data = ComPort.ReadExisting();
+                Debug.WriteLine("After var data = ComPort.ReadExisting();");
 
-        private static string PromptUserToSelectCOMPort()
-        {
-            static string InvalidSelection()
-            {
-                Console.WriteLine("Invalid selection!!! Press enter to continue");
-                _ = Console.ReadLine();
-                return "";
-            }
-
-            var portNames = SerialPortWrapper.GetSerialPorts();
-
-            Console.WriteLine("Which COM Port should be listened to? (Enter 'EXIT' to quit program)");
-            Console.WriteLine(Extensions.FillBlanks("", 49, '-'));
-            Console.WriteLine($"|{Extensions.FillBlanks("\tNum", 6, '\t')}|{Extensions.FillBlanks("\tCom Port", 10, '\t')}|");
-            Console.WriteLine(Extensions.FillBlanks("", 49, '-'));
-            foreach (var portName in portNames)
-            {
-                Console.WriteLine(portName.ConsolePromptLine);
-            }
-
-            Console.WriteLine(Extensions.FillBlanks("", 49, '-'));
-            Console.WriteLine("You can enter either Num or Com Port value:");
-            string userSelectedPort = Console.ReadLine();
-
-            if (userSelectedPort.Contains("EXIT"))
-            {
-                return "Exit";
-            }
-
-            if (int.TryParse(userSelectedPort, out int intResult))
-            {
-                if ((intResult <= 0) && (intResult > portNames.Count()))
+                if (!string.IsNullOrWhiteSpace(data))
                 {
-                    return InvalidSelection();
-                }
-                else
-                {
-                    return portNames.FirstOrDefault(i => i.Index == intResult).SerialPortID;
-                }
-            }
-            else
-            {
-                if (portNames.FirstOrDefault(i => i.SerialPortID == userSelectedPort, out SerialPortWrapper result))
-                {
-                    return result.SerialPortID;
-                }
-                else
-                {
-                    return InvalidSelection();
+                    ConsoleCallback.Invoke($"Received data from COM port: {data}", Extensions.ConsoleAlertLevel.Info);
+                    Debug.WriteLine($"Received data from COM port: {data}");
+                    LastSerialReading = data;
+                    //Now here is where we need to add the code to broadcast message to receiver, pre-existing code not working properly.
                 }
             }
         }
@@ -198,7 +198,6 @@ namespace SerialPortTest
         public const string OddParity   = "Odd";
         public const string NoParity    = "None";
 
-        
     }
 
     public class SerialPortWrapper

@@ -1,27 +1,225 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-
-using static SerialPortTest.SerialPortTools;
-using static SerialPortTest.Extensions;
-using System.Runtime.CompilerServices;
 using ReactiveUI;
-using SerialPortTest;
 using System.Linq;
 using static SerialPortApplication.CustomSettings;
+using System.Reactive;
+using System.IO.Ports;
+using SerialPortApplication.Views;
+using System.Threading.Tasks;
+using static SerialPortApplication.Views.MessageBox;
+using System.Diagnostics;
 
 namespace SerialPortApplication.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
-        public MainWindowViewModel()
+        public MainWindowViewModel(MainWindow window): base(window)
         {
+            
             //SerialPortTest.Extensions.CatchSerialPortException(() => GetPortAndStartListening(), (string message, ConsoleAlertLevel alertLevel) => 
             //{ 
             //    Output += $"\n{message}";
             //});
             SelectedParity = GetParityOptionFromString(GetSetting(StringSetting.Parity));
+            //ListenOnSerialPortCommand = ReactiveCommand.Create(async () =>
+            //{
+            //    async Task InvalidDataToStartListeningAsync(string message)
+            //    {
+            //        _ = await Show(parentView, message, "Error", MessageBoxButtons.Ok);
+            //        return;
+            //    }
+
+            //    var tempValue = !ListeningOnSerialPort;
+            //    if (tempValue)
+            //    {
+            //        if (string.IsNullOrWhiteSpace(SelectedComPort))
+            //        {
+            //            await InvalidDataToStartListeningAsync("Selected port is blank");
+            //        }
+            //        else if (SerialPort.GetPortNames().Contains(SelectedComPort))
+            //        {
+            //            await InvalidDataToStartListeningAsync("Selected port does not exist in ports associated with computer");
+            //        }
+            //        else if (SelectedBaudRate <= 0 || BaudRates.Contains(SelectedBaudRate) == false)
+            //        {
+            //            MessageBoxResult result = await Show(parentView, "An invalid baud rate has been specified. Is this correct?", "Error", MessageBoxButtons.YesNo);
+            //            if (result == MessageBoxResult.No)
+            //            {
+            //                return;
+            //            }
+            //        }
+            //        else if (SelectedDataBits <= 0 || DataBits.Contains(SelectedDataBits) == false)
+            //        {
+            //            await InvalidDataToStartListeningAsync("An invalid databits value has been specified. Reselect databits and try again");
+            //        }
+            //        else if (SelectedStopBits <= 0 || StopBits.Contains(SelectedStopBits) == false)
+            //        {
+            //            await InvalidDataToStartListeningAsync("An invalid stop bits value has been specified. Reselect stop bits and try again");
+            //        }
+            //        else if (SelectedParity == null)
+            //        {
+            //            await InvalidDataToStartListeningAsync("No parity selected");
+            //        }
+            //        else if ((StabilityIndicatorActive == false && SequenceOfIdenticalReadingsActive == false)
+            //        || (StabilityIndicatorActive && SequenceOfIdenticalReadingsActive))
+            //        {
+            //            await InvalidDataToStartListeningAsync("Somehow both the stability indicator and sequence of identical readers got the same selection. Reselect one of the options and try again");
+            //        }
+            //        else if (StabilityIndicatorActive && string.IsNullOrWhiteSpace(StabilityIndicatorSnippet))
+            //        {
+            //            MessageBoxResult result = await Show(parentView, "Stability indicator active, but no character snippet provided. Is this correct?", "Error", MessageBoxButtons.YesNo);
+            //            if (result == MessageBoxResult.No)
+            //            {
+            //                return;
+            //            }
+            //        }
+            //        else if (StabilityIndicatorStartingPosition <= 0)
+            //        {
+            //            await InvalidDataToStartListeningAsync("Stability indicator can not start at position lower than one.");
+            //        }
+            //        else if (SequenceOfIdenticalReadingsActive && (NumberOfIdenticalReadings <= 0))
+            //        {
+            //            await InvalidDataToStartListeningAsync("Number of readings for sequence of identical readings can not be lower than one.");
+            //        }
+            //        else if (WeightStartPosition < 0 || WeightEndPosition < 0)
+            //        {
+            //            await InvalidDataToStartListeningAsync("Scale string settings have to indications positions greater than or equal to zero.");
+            //        }
+            //        else if ((TakeFullWeightString == false) && (WeightStartPosition != WeightEndPosition) && (WeightEndPosition <= WeightStartPosition))
+            //        {
+            //            await InvalidDataToStartListeningAsync("Scale string's end position can not be less than starting position.");
+            //        }
+            //        else if (StringRequiredLengthActive && (ScaleStringRequiredLength <= 0))
+            //        {
+            //            await InvalidDataToStartListeningAsync("Scale string required length setting requires a length greater than zero");
+            //        }
+
+
+            //        ListeningOnSerialPort = tempValue;
+            //        if (ListeningOnSerialPort)
+            //        {
+            //            Extensions.CatchSerialPortException(() => SerialPortTools.GetPortAndStartListening(), (_, _) => { });
+            //        }
+            //        else
+            //        {
+            //            Extensions.CatchSerialPortException(() => SerialPortTools.StopListeningOnPort(), (_, _) => { });
+            //        }
+                    
+            //    }
+            //});
+
+            BroadcastSerialValuesCommand = ReactiveCommand.Create(() =>
+            {
+                if (ListeningOnSerialPort)
+                {
+                    SocketTools.StartServer();
+                }
+            });
         }
+
+        public async void ListenOnSerialPortCommand()
+        {
+            async Task InvalidDataToStartListeningAsync(string message)
+            {
+                _ = await Show(parentView, message, "Error", MessageBoxButtons.Ok);
+            }
+
+            var tempValue = !ListeningOnSerialPort;
+            if (tempValue)
+            {
+               
+                if (string.IsNullOrWhiteSpace(SelectedComPort))
+                {
+                    await InvalidDataToStartListeningAsync("Selected port is blank");
+                    return;
+                }
+                else if (SerialPort.GetPortNames().Contains(SelectedComPort) == false)
+                {
+                    await InvalidDataToStartListeningAsync("Selected port does not exist in ports associated with computer");
+                    return;
+                }
+                else if (SelectedBaudRate <= 0 || BaudRates.Contains(SelectedBaudRate) == false)
+                {
+                    MessageBoxResult result = await Show(parentView, "An invalid baud rate has been specified. Is this correct?", "Error", MessageBoxButtons.YesNo);
+                    if (result == MessageBoxResult.No)
+                    {
+                        return;
+                    }
+                }
+                else if (SelectedDataBits <= 0 || DataBits.Contains(SelectedDataBits) == false)
+                {
+                    await InvalidDataToStartListeningAsync("An invalid databits value has been specified. Reselect databits and try again");
+                    return;
+                }
+                else if (SelectedStopBits <= 0 || StopBits.Contains(SelectedStopBits) == false)
+                {
+                    await InvalidDataToStartListeningAsync("An invalid stop bits value has been specified. Reselect stop bits and try again");
+                    return;
+                }
+                else if (SelectedParity == null)
+                {
+                    await InvalidDataToStartListeningAsync("No parity selected");
+                    return;
+                }
+                else if ((StabilityIndicatorActive == false && SequenceOfIdenticalReadingsActive == false)
+                || (StabilityIndicatorActive && SequenceOfIdenticalReadingsActive))
+                {
+                    await InvalidDataToStartListeningAsync("Somehow both the stability indicator and sequence of identical readers got the same selection. Reselect one of the options and try again");
+                    return;
+                }
+                else if (StabilityIndicatorActive && string.IsNullOrWhiteSpace(StabilityIndicatorSnippet))
+                {
+                    MessageBoxResult result = await Show(parentView, "Stability indicator active, but no character snippet provided. Is this correct?", "Error", MessageBoxButtons.YesNo);
+                    if (result == MessageBoxResult.No)
+                    {
+                        return;
+                    }
+                }
+                else if (StabilityIndicatorStartingPosition <= 0)
+                {
+                    await InvalidDataToStartListeningAsync("Stability indicator can not start at position lower than one.");
+                    return;
+                }
+                else if (SequenceOfIdenticalReadingsActive && (NumberOfIdenticalReadings <= 0))
+                {
+                    await InvalidDataToStartListeningAsync("Number of readings for sequence of identical readings can not be lower than one.");
+                    return;
+                }
+                else if (WeightStartPosition < 0 || WeightEndPosition < 0)
+                {
+                    await InvalidDataToStartListeningAsync("Scale string settings have to indications positions greater than or equal to zero.");
+                    return;
+                }
+                else if ((TakeFullWeightString == false) && (WeightStartPosition != WeightEndPosition) && (WeightEndPosition <= WeightStartPosition))
+                {
+                    await InvalidDataToStartListeningAsync("Scale string's end position can not be less than starting position.");
+                    return;
+                }
+                else if (StringRequiredLengthActive && (ScaleStringRequiredLength <= 0))
+                {
+                    await InvalidDataToStartListeningAsync("Scale string required length setting requires a length greater than zero");
+                    return;
+                }
+
+
+                ListeningOnSerialPort = tempValue;
+                if (ListeningOnSerialPort)
+                {
+                    Debug.WriteLine("About to listen on serial port");
+                    SerialPortTools.Set
+                    Extensions.CatchSerialPortException(() => SerialPortTools.GetPortAndStartListening(), (message, _) => { Debug.WriteLine(message); });
+                }
+                else
+                {
+                    Debug.WriteLine("About to stop listening on serial port");
+                    Extensions.CatchSerialPortException(() => SerialPortTools.StopListeningOnPort(), (_, _) => { });
+                }
+
+            }
+        }
+        private bool ListeningOnSerialPort      { get; set; } = false;
+        private bool BroadcastingSerialValues   { get; set; } = false;
 
         private string _output = string.Empty;
         public string Output
@@ -61,6 +259,13 @@ namespace SerialPortApplication.ViewModels
             { 
                 CustomSettings.SetSetting(IntSetting.BaudRate, SelectedBaudRate); 
             });
+        }
+
+        private string _LastReceivedValue = string.Empty;
+        public string LastReceivedValue
+        {
+            get => _LastReceivedValue;
+            set => SetProperty(ref _LastReceivedValue, value);
         }
 
         private IEnumerable<int> _baudRates = SerialPortTools.BaudRates;
@@ -105,43 +310,45 @@ namespace SerialPortApplication.ViewModels
         }
 
         #region Parity
-        private ParityOption _selectedParity;
+        private Parity? _selectedParity = null;
 
-        private static ParityOption GetParityOptionFromString(string parityString)
+        private static Parity? GetParityOptionFromString(string parityString)
         {
             return parityString switch
             {
-                EvenParity  => ParityOption.Even,
-                OddParity   => ParityOption.Odd,
-                NoParity    => ParityOption.None,
-                _           => ParityOption.None,
+                SerialPortTools.EvenParity  => Parity.Even,
+                SerialPortTools.OddParity   => Parity.Odd,
+                SerialPortTools.NoParity    => Parity.None,
+                _           => null,
             };
         }
 
-        public ParityOption SelectedParity
+        public Parity? SelectedParity
         {
             get => _selectedParity;
             set => SetProperty(ref _selectedParity, value, () => {
                 switch (_selectedParity)
-                { 
-                    case ParityOption.Even: 
-                        EvenParityChecked   = true;
-                        OddParityChecked    = false;
-                        NoneParityChecked   = false;
-                        CustomSettings.SetSetting(StringSetting.Parity, EvenParity);
-                        break; 
-                    case ParityOption.Odd:
-                        EvenParityChecked   = false;
-                        OddParityChecked    = true;
-                        NoneParityChecked   = false;
-                        CustomSettings.SetSetting(StringSetting.Parity, OddParity);
-                        break; 
-                    case ParityOption.None:
-                        EvenParityChecked   = false;
-                        OddParityChecked    = false;
-                        NoneParityChecked   = true;
-                        CustomSettings.SetSetting(StringSetting.Parity, NoParity);
-                        break; 
+                {
+                    case Parity.Even:
+                        EvenParityChecked = true;
+                        OddParityChecked = false;
+                        NoneParityChecked = false;
+                        CustomSettings.SetSetting(StringSetting.Parity, SerialPortTools.EvenParity);
+                        break;
+                    case Parity.Odd:
+                        EvenParityChecked = false;
+                        OddParityChecked = true;
+                        NoneParityChecked = false;
+                        CustomSettings.SetSetting(StringSetting.Parity, SerialPortTools.OddParity);
+                        break;
+                    case Parity.None:
+                        EvenParityChecked = false;
+                        OddParityChecked = false;
+                        NoneParityChecked = true;
+                        CustomSettings.SetSetting(StringSetting.Parity, SerialPortTools.NoParity);
+                        break;
+                    default:
+                        break;
                 }
             });
         }
@@ -205,7 +412,7 @@ namespace SerialPortApplication.ViewModels
             });
         }
 
-        private int _stabilityIndicatorStartingPosition = GetSetting(IntSetting.StabilityIndicatorStartPosition);
+        private int _stabilityIndicatorStartingPosition = /*GetSetting(IntSetting.StabilityIndicatorStartPosition)*/3;
         public int StabilityIndicatorStartingPosition
         {
             get => _stabilityIndicatorStartingPosition;
@@ -265,6 +472,18 @@ namespace SerialPortApplication.ViewModels
             {
                 CustomSettings.SetSetting(IntSetting.ScaleStringRequiredLength, ScaleStringRequiredLength);
             });
+        }
+        #endregion
+
+        #region Commands
+        //public ReactiveCommand<Unit, Task> ListenOnSerialPortCommand    { get; }
+        public ReactiveCommand<Unit, Unit> BroadcastSerialValuesCommand { get; }
+
+        private bool _takeFullWeightString = GetSetting(BoolSetting.TakeFullScaleString);
+        public bool TakeFullWeightString
+        {
+            get => _takeFullWeightString;
+            set => SetProperty(ref _takeFullWeightString, value);
         }
         #endregion
     }

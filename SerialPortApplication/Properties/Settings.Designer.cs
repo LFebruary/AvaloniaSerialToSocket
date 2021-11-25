@@ -213,5 +213,17 @@ namespace SerialPortApplication.Properties {
                 this["Scale_string_must_conform_to_length"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool Take_full_scale_string {
+            get {
+                return ((bool)(this["Take_full_scale_string"]));
+            }
+            set {
+                this["Take_full_scale_string"] = value;
+            }
+        }
     }
 }

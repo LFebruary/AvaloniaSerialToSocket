@@ -1,5 +1,4 @@
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
 using SerialPortApplication.ViewModels;
@@ -14,6 +13,7 @@ namespace SerialPortApplication.Views
 #if DEBUG
             this.AttachDevTools();
 #endif
+            DataContext = new MainWindowViewModel(this);
         }
 
         private void InitializeComponent()

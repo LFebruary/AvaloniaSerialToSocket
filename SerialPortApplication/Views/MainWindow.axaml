@@ -100,6 +100,37 @@
 			</Border>
 		</StackPanel>
 		
+		<StackPanel Grid.Column="3" Grid.ColumnSpan="2" Grid.Row="0" Orientation="Vertical" HorizontalAlignment="Stretch" Margin="0,0,0,8">
+			<Label Content="Scale string settings" FontSize="16" FontWeight="Bold" Margin="0,0,0,4"/>
+			<Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" Margin="4" Height="170">
+				<Grid Margin="8,8,0,0">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="6*" />
+						<ColumnDefinition Width="3*" />
+					</Grid.ColumnDefinitions>
+				
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+					</Grid.RowDefinitions>
+				
+					<Label Content="Weight start position" Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,0,8"/>
+					<ButtonSpinner Content="11" Grid.Column="1" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,0,8"/>
+				
+					<Label Content="Weight end position" Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,0,8"/>
+					<ButtonSpinner Content="19" Grid.Column="1" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,0,8"/>
+
+					<StackPanel Orientation="Horizontal" Grid.ColumnSpan="2" Grid.Row="2" Margin="0,0,0,8">
+						<CheckBox VerticalAlignment="Center"/>
+						<Label Content="String must be" VerticalAlignment="Center"/>
+						<ButtonSpinner Content="17" VerticalAlignment="Center"/>
+						<Label Content="characters long" VerticalAlignment="Center"/>
+					</StackPanel>
+				</Grid>
+			</Border>
+		</StackPanel>
+		
 		<StackPanel Grid.Column="0" Orientation="Vertical" HorizontalAlignment="Stretch" Grid.Row="1" Margin="0,0,0,16" VerticalAlignment="Stretch">
 			<Label Content="Scale stability" FontWeight="Bold" FontSize="16" Margin="0,0,0,4"/>
 			<Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" Margin="4" Height="150">
@@ -137,36 +168,14 @@
 		</StackPanel>
 		
 		
-		<StackPanel Grid.Column="3" Grid.ColumnSpan="2" Grid.Row="0" Orientation="Vertical" HorizontalAlignment="Stretch" Margin="0,0,0,8">
-			<Label Content="Scale string settings" FontSize="16" FontWeight="Bold" Margin="0,0,0,4"/>
-			<Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" Margin="4" Height="170">
-				<Grid Margin="8,8,0,0">
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="6*" />
-						<ColumnDefinition Width="3*" />
-					</Grid.ColumnDefinitions>
-				
-					<Grid.RowDefinitions>
-						<RowDefinition Height="Auto" />
-						<RowDefinition Height="Auto" />
-						<RowDefinition Height="Auto" />
-					</Grid.RowDefinitions>
-				
-					<Label Content="Weight start position" Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,0,8"/>
-					<ButtonSpinner Content="11" Grid.Column="1" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,0,8"/>
-				
-					<Label Content="Weight end position" Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,0,8"/>
-					<ButtonSpinner Content="19" Grid.Column="1" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,0,8"/>
-
-					<StackPanel Orientation="Horizontal" Grid.ColumnSpan="2" Grid.Row="2" Margin="0,0,0,8">
-						<CheckBox VerticalAlignment="Center"/>
-						<Label Content="String must be" VerticalAlignment="Center"/>
-						<ButtonSpinner Content="17" VerticalAlignment="Center"/>
-						<Label Content="characters long" VerticalAlignment="Center"/>
-					</StackPanel>
-				</Grid>
-			</Border>
+		
+		
+		<StackPanel Orientation="Vertical" Grid.Column="1" Grid.Row="1">
+			<Button Content="Start Listening" IsEnabled="True" Command="{Binding ListenOnSerialPortCommand}"/>
+			<TextBox Content="{Binding LastReceivedValue}" />
+			<Button Content="Start broadcasting values" IsEnabled="{Binding ListeningOnSerialPort}" />
 		</StackPanel>
+	
 		
 	</Grid>
 	

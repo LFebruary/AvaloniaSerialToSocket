@@ -1,7 +1,6 @@
 ﻿using SerialPortApplication.Properties;
-using SerialPortTest;
 using System;
-using static SerialPortTest.SerialPortTools;
+using static SerialPortApplication.SerialPortTools;
 
 namespace SerialPortApplication
 {
@@ -116,7 +115,8 @@ namespace SerialPortApplication
             {
                 BoolSetting.StabilityIndicatorActive            => Settings.Default.Stability_indicator_active,
                 BoolSetting.SequenceOfIdenticalReadingsActive   => Settings.Default.Sequence_of_identical_readings_active,
-                BoolSetting.ScaleStringRequiredLength      => Settings.Default.Scale_string_must_conform_to_length,
+                BoolSetting.ScaleStringRequiredLength           => Settings.Default.Scale_string_must_conform_to_length,
+                BoolSetting.TakeFullScaleString                 => Settings.Default.Take_full_scale_string,
                 _ => throw new ArgumentOutOfRangeException(nameof(setting)),
             };
         }
@@ -134,6 +134,9 @@ namespace SerialPortApplication
                 case BoolSetting.ScaleStringRequiredLength:
                     Settings.Default.Scale_string_must_conform_to_length = value;
                     break;
+                case BoolSetting.TakeFullScaleString:
+                    Settings.Default.Take_full_scale_string = value;
+                    break;
             }
         }
 
@@ -145,12 +148,7 @@ namespace SerialPortApplication
             StabilityIndicatorSnippet
         }
 
-        public enum ParityOption
-        {
-            Even,
-            Odd,
-            None
-        }
+        
 
         public enum IntSetting
         {
@@ -168,7 +166,8 @@ namespace SerialPortApplication
         {
             StabilityIndicatorActive,
             SequenceOfIdenticalReadingsActive,
-            ScaleStringRequiredLength
+            ScaleStringRequiredLength,
+            TakeFullScaleString
         }
     }
 }

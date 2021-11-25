@@ -3,7 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace SerialPortTest
+namespace SerialPortApplication
 {
     internal static partial class SocketTools
     {
@@ -13,38 +13,37 @@ namespace SerialPortTest
             {
                 using Socket socket = new(AddressFamily.InterNetwork, SocketType.Dgram, 0);
                 socket.Connect("8.8.8.8", 65530);
-                IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
+
+                if (socket.LocalEndPoint is not IPEndPoint endPoint)
+                {
+                    throw new SerialPortException("Could not determine local ip address via socket");
+                }
+
                 return endPoint.Address.ToString();
             }
             catch (Exception e)
             {
                 throw new SerialPortException("Could not determine local ip address via socket", e);
             }
-            
-            //var host = Dns.GetHostEntry(Dns.GetHostName());
-            //foreach (var ip in host.AddressList)
-            //{
-            //    if (ip.AddressFamily == AddressFamily.InterNetwork)
-            //    {
-            //        return ip.ToString();
-            //    }
-            //}
-
-            //throw new SerialPortException("No network adapters with an IPv4 address in the system!!!");
         }
 
         //static IPHostEntry  host        = Dns.GetHostEntry(Dns.GetHostName());
         //static IPAddress    ipAddress   = IPAddress.Parse("192.168.1.37");
-        static IPAddress    ipAddress   = IPAddress.Parse(GetLocalIPAddress());
-        static Socket       listener    = new(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-        static int          port        = 5050;
-        static IPEndPoint   endPoint    = new(ipAddress, port);
+        internal static IPAddress    ipAddress   = IPAddress.Parse(GetLocalIPAddress());
+        internal static Socket       listener    = new(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+        internal static int          port        = 5050;
+        internal static IPEndPoint   endPoint    = new(ipAddress, port);
         public static void StartServer()
         {
             SerialPortTools.ConsoleCallback.Invoke($"Listening on {ipAddress}:{port}", Extensions.ConsoleAlertLevel.Info);
 
             try
             {
+                ipAddress   = IPAddress.Parse(GetLocalIPAddress());
+                listener    = new(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                port        = 5050;
+                endPoint    = new(ipAddress, port);
+
                 listener.Bind(endPoint);
 
                 listener.Listen(10);
@@ -57,6 +56,11 @@ namespace SerialPortTest
 
         public static void SendData()
         {
+            if (listener.LocalEndPoint == null)
+            {
+                throw new SerialPortException("Listening socket was never instantiated");
+            }
+
             SerialPortTools.ConsoleCallback.Invoke("Waiting for connection...", Extensions.ConsoleAlertLevel.Info);
 
             try
@@ -73,16 +77,5 @@ namespace SerialPortTest
             }
             
         }
-
-        //private static void ListenerCallback(IAsyncResult ar)
-        //{
-        //    if (ar.AsyncState is Socket castedSocket && castedSocket.Connected == true)
-        //    {
-        //        Socket handler = castedSocket.Accept();
-                
-        //        handler.Send(msg);
-        //        Console.WriteLine($"Sent data: {Encoding.ASCII.GetString(msg)}");
-        //    }
-        //}
     }
 }

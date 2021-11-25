@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SerialPortTest
+namespace SerialPortApplication
 {
     public static partial class Extensions
     {
@@ -16,7 +16,7 @@ namespace SerialPortTest
                 : $"{value}{new string(character, lengthOfSpaces)}";
         }
 
-        internal static bool FirstOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate, out TSource result)
+        internal static bool FirstOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate, out TSource? result)
         {
             if (source.Any(predicate))
             {

@@ -1,14 +1,18 @@
+using Avalonia.Controls;
 using ReactiveUI;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace SerialPortApplication.ViewModels
 {
     public class ViewModelBase : ReactiveObject
     {
+        public Window parentView;
+        public ViewModelBase(Window parentView)
+        {
+            this.parentView = parentView;
+        }
+
         protected void SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)
         {
             if (Equals(storage, value))
