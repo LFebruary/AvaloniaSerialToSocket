@@ -4,12 +4,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="SerialPortApplication.Views.MessageBox" SizeToContent="WidthAndHeight" CanResize="False">
-    <StackPanel HorizontalAlignment="Center">
-        <TextBlock HorizontalAlignment="Center" Name="Text"/>
+    <StackPanel HorizontalAlignment="Left" >
+        <TextBlock Name="Text" Margin="8" FontSize="12"/>
         <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Name="Buttons">
             <StackPanel.Styles>
                 <Style Selector="Button">
-                    <Setter Property="Margin" Value="5"/>
+                    <Setter Property="Margin" Value="8"/>
                 </Style>
             </StackPanel.Styles>
 

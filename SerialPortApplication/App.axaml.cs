@@ -3,6 +3,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using SerialPortApplication.ViewModels;
 using SerialPortApplication.Views;
+using System.Collections.Specialized;
 
 namespace SerialPortApplication
 {
@@ -11,6 +12,8 @@ namespace SerialPortApplication
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
+
+            CustomSettings.SetSetting(CustomSettings.StringCollectionSetting.CollectionOfReceivedValues, new StringCollection());
         }
 
         public override void OnFrameworkInitializationCompleted()

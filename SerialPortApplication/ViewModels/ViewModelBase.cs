@@ -48,7 +48,7 @@ namespace SerialPortApplication.ViewModels
             onChange?.Invoke(value);
         }
 
-        protected void OnPropertyChanged(string propertyName) => this.RaisePropertyChanged(propertyName);
+        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null) => this.RaisePropertyChanged(propertyName);
 
     }
 }

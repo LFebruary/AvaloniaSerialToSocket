@@ -30,17 +30,17 @@ namespace SerialPortApplication
             }
         }
 
-        public static void CatchSerialPortException(this Action p, Action<string, ConsoleAlertLevel> consoleCallback)
-        {
-            try
-            {
-                p.Invoke();
-            }
-            catch (SerialPortException ex)
-            {
-                ConsoleWriteError(ex.Message, consoleCallback);
-            }
-        }
+        //public static void CatchSerialPortException(this Action p, Action<string, ConsoleAlertLevel> consoleCallback)
+        //{
+        //    try
+        //    {
+        //        p.Invoke();
+        //    }
+        //    catch (SerialPortException ex)
+        //    {
+        //        ConsoleWriteError(ex.Message, consoleCallback);
+        //    }
+        //}
 
         internal static void ConsoleWriteInfo(string value, Action<string, ConsoleAlertLevel> consoleCallback)
         {

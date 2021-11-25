@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -21,36 +22,42 @@ namespace SerialPortApplication
 
                 return endPoint.Address.ToString();
             }
-            catch (Exception e)
+            catch (SocketException e)
             {
                 throw new SerialPortException("Could not determine local ip address via socket", e);
             }
         }
 
-        //static IPHostEntry  host        = Dns.GetHostEntry(Dns.GetHostName());
-        //static IPAddress    ipAddress   = IPAddress.Parse("192.168.1.37");
+        internal static void StopServer()
+        {
+            listener?.Close();
+            listener = new(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+        }
+
         internal static IPAddress    ipAddress   = IPAddress.Parse(GetLocalIPAddress());
         internal static Socket       listener    = new(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-        internal static int          port        = 5050;
-        internal static IPEndPoint   endPoint    = new(ipAddress, port);
+        internal static int          Port        => CustomSettings.GetSetting(CustomSettings.IntSetting.BroadcastPort);
+        internal static IPEndPoint   endPoint    = new(ipAddress, Port);
+        internal static readonly int DefaultBroadcastPort = 5050;
+
+        internal static bool SocketOpen => listener.Connected;
         public static void StartServer()
         {
-            SerialPortTools.ConsoleCallback.Invoke($"Listening on {ipAddress}:{port}", Extensions.ConsoleAlertLevel.Info);
+            Debug.WriteLine($"Listening on {ipAddress}:{Port}");
 
             try
             {
                 ipAddress   = IPAddress.Parse(GetLocalIPAddress());
                 listener    = new(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                port        = 5050;
-                endPoint    = new(ipAddress, port);
+                endPoint    = new(ipAddress, Port);
 
                 listener.Bind(endPoint);
 
                 listener.Listen(10);
             }
-            catch (Exception ex)
+            catch (SocketException exception)
             {
-                throw new SerialPortException("Could not get initial startup of server going...", ex);
+                throw new SerialPortException("Could not get initial startup of server going...", exception);
             }
         }
 
@@ -60,8 +67,6 @@ namespace SerialPortApplication
             {
                 throw new SerialPortException("Listening socket was never instantiated");
             }
-
-            SerialPortTools.ConsoleCallback.Invoke("Waiting for connection...", Extensions.ConsoleAlertLevel.Info);
 
             try
             {

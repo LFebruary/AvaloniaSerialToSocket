@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.IO.Ports;
 using System.Linq;
 using System.Timers;
@@ -15,19 +16,6 @@ namespace SerialPortApplication
         public static string    LastUsedPortID      => GetSetting(StringSetting.ComPort);
         public static int       LastUsedBaudRate    => GetSetting(IntSetting.BaudRate);
 
-        private static Action<string, Extensions.ConsoleAlertLevel> _consoleCallback = (_, _) => { };
-        public static Action<string, Extensions.ConsoleAlertLevel> ConsoleCallback
-        {
-            get => _consoleCallback;
-            set
-            {
-                if (_consoleCallback != value)
-                {
-                    _consoleCallback = value;
-                }
-            }
-        }
-
         private static string? _lastSerialReading;
         public static string LastSerialReading
         {
@@ -35,16 +23,19 @@ namespace SerialPortApplication
             set
             {
                 _lastSerialReading = value;
-                Extensions.CatchSerialPortException(SocketTools.SendData, ConsoleCallback);
+                ValueUpdatedCallback?.Invoke(LastSerialReading);
+                Debug.WriteLine(LastSerialReading);
+                //SocketTools.SendData();
             }
         }
 
+        internal static Action<string> ValueUpdatedCallback = (_) => { };
 
         private static Parity? LastUsedParity => GetSetting(StringSetting.Parity) switch
         {
-            NoParity => Parity.None,
-            EvenParity => Parity.Even,
-            OddParity => Parity.Odd,
+            NoParity    => Parity.None,
+            EvenParity  => Parity.Even,
+            OddParity   => Parity.Odd,
             _ => null,
         };
 
@@ -58,7 +49,7 @@ namespace SerialPortApplication
         };
 
 #nullable enable
-        private static SerialPort? ComPort = null;
+        private static SerialPort? SerialPort = null;
         private static Timer? Timer = null;
 #nullable restore
 
@@ -66,85 +57,74 @@ namespace SerialPortApplication
         {
             static void Timer_Elapsed(object sender, ElapsedEventArgs e)
             {
-                ConsoleCallback.Invoke(Extensions.FillBlanks("", 24, '-'), Extensions.ConsoleAlertLevel.Info);
-                ConsoleCallback.Invoke($"Last used COM Port: {LastUsedPortID}", Extensions.ConsoleAlertLevel.Info);
-                ConsoleCallback.Invoke(Extensions.FillBlanks("", 24, '-'), Extensions.ConsoleAlertLevel.Info);
+                Debug.WriteLine($"Last used COM Port: {LastUsedPortID}");
             }
 
-            if (LastUsedParity != null && LastUsedParity is Parity castedParity)
+            if (SerialPort != null && SerialPort.IsOpen)
             {
-                if (LastUsedStopBits != null && LastUsedStopBits is StopBits castedStopBits)
-                {
-                    Debug.WriteLine("Before ComPort create.");
-                    ComPort = new SerialPort(LastUsedPortID, LastUsedBaudRate, castedParity, LastUsedDataBits, castedStopBits);
-                    Debug.WriteLine("After ComPort create.");
-                }
-                else
-                {
-                    throw new SerialPortException("Invalid value for stop bits encountered");
-                }
+                throw new SerialPortException("SerialPortListener already instantiated. First stop listening to current port before changing ports.");
             }
-            else
+            else if (LastUsedParity != null && LastUsedParity is Parity castedParity && LastUsedStopBits != null && LastUsedStopBits is StopBits castedStopBits)
+            {
+                SerialPort = new SerialPort(LastUsedPortID, LastUsedBaudRate, castedParity, LastUsedDataBits, castedStopBits);
+            }
+            else if (LastUsedParity == null || LastUsedParity is not Parity)
             {
                 throw new SerialPortException("Invalid value for parity encountered");
             }
-            
-            if (ComPort != null)
+            else if (LastUsedStopBits == null || LastUsedStopBits is not System.IO.Ports.StopBits)
             {
-                Timer = new(30000);
-                Timer.Elapsed -= Timer_Elapsed;
-                Timer.Elapsed += Timer_Elapsed;
-                Timer.AutoReset = true;
-                Timer.Enabled = true;
-
-                Debug.WriteLine("Before StartListeningOnSelectedPort()");
-                StartListeningOnSelectedPort();
-                Debug.WriteLine("After StartListeningOnSelectedPort()");
+                throw new SerialPortException("Invalid value for stop bits encountered");
             }
+            
+            if (SerialPort != null)
+            {
+                Timer           = new(30000);
+                Timer.Elapsed   -= Timer_Elapsed;
+                Timer.Elapsed   += Timer_Elapsed;
+                Timer.AutoReset = true;
+                Timer.Enabled   = true;
+
+
+                if (SerialPort.IsOpen)
+                {
+                    throw new SerialPortException("Serial port is already open, re-select port and try again.");
+                }
+                try
+                {
+                    SerialPort.Open();
+                    SerialPort.DataReceived -= ComPort_DataReceived;
+                    SerialPort.DataReceived += ComPort_DataReceived;
+                }
+                catch (UnauthorizedAccessException e)
+                {
+                    throw new SerialPortException("Another process on the system already has the specified COM port open. Re-select port and try again.", e);
+                }
+
+            }
+        }
+
+        internal static bool IsPortOpen => SerialPort?.IsOpen == true;
+
+        internal static void ForcefulClose()
+        {
+            SerialPort?.Close();
+            SerialPort = null;
         }
 
         public static void StopListeningOnPort()
         {
-            if (ComPort?.IsOpen == true)
+            if (SerialPort?.IsOpen == true)
             {
-                ComPort.Close();
-            }
-        }
-
-        private static void StartListeningOnSelectedPort()
-        {
-            if (ComPort != null)
-            {
-                Debug.WriteLine("Before ComPort.Open()");
-                ComPort.Open();
-                Debug.WriteLine("After ComPort.Open()");
-
-                Debug.WriteLine("Before ComPort.DataReceived -= ComPort_DataReceived");
-                ComPort.DataReceived -= ComPort_DataReceived;
-                Debug.WriteLine("After ComPort.DataReceived -= ComPort_DataReceived");
-
-                Debug.WriteLine("Before ComPort.DataReceived += ComPort_DataReceived");
-                ComPort.DataReceived += ComPort_DataReceived;
-                Debug.WriteLine("After ComPort.DataReceived += ComPort_DataReceived");
+                SerialPort.Close();
             }
         }
 
         private static void ComPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            if (ComPort != null)
-            {
-                Debug.WriteLine("Before var data = ComPort.ReadExisting();");
-                var data = ComPort.ReadExisting();
-                Debug.WriteLine("After var data = ComPort.ReadExisting();");
-
-                if (!string.IsNullOrWhiteSpace(data))
-                {
-                    ConsoleCallback.Invoke($"Received data from COM port: {data}", Extensions.ConsoleAlertLevel.Info);
-                    Debug.WriteLine($"Received data from COM port: {data}");
-                    LastSerialReading = data;
-                    //Now here is where we need to add the code to broadcast message to receiver, pre-existing code not working properly.
-                }
-            }
+            SerialPort port     = (SerialPort)sender;
+            string data         = port.ReadExisting();
+            LastSerialReading   = data;
         }
 
         public static readonly IList<int> BaudRates = new ReadOnlyCollection<int>(
@@ -178,10 +158,10 @@ namespace SerialPortApplication
 
         public static readonly int DefaultStopbits                          = 1;
 
-        public static readonly int DefaultStabilityIndicatorStartPosition   = 0;
+        public static readonly int DefaultStabilityIndicatorStartPosition   = 1;
         public static readonly int DefaultIdenticalReadingQuantity          = 5;
-        public static readonly int DefaultScaleStringWeightStartPosition    = 1;
-        public static readonly int DefaultScaleStringWeightEndPosition      = 5;
+        public static readonly int DefaultScaleStringWeightStartPosition    = 11;
+        public static readonly int DefaultScaleStringWeightEndPosition      = 19;
         public static readonly int DefaultScaleStringMinimumLength          = 17;
 
         public const string DefaultParity = NoParity;
@@ -198,6 +178,42 @@ namespace SerialPortApplication
         public const string OddParity   = "Odd";
         public const string NoParity    = "None";
 
+        internal const string FlowControlCtsRts     = "CTS/RTS";
+        internal const string FlowControlDsrDtr     = "DSR/DTS";
+        internal const string FlowControlXonXoff    = "XON/XOFF";
+        internal const string FlowControlNone       = "NONE";
+        internal const string FlowControlDefault    = FlowControlNone;
+        internal static void SetFlowControl(FlowControl? selectedFlowControl)
+        {
+            if (SerialPort == null)
+            {
+                return;
+            }
+
+            switch (selectedFlowControl)
+            {
+                case FlowControl.Ctr_Rts:
+                    SerialPort.Handshake = Handshake.RequestToSend;
+                    SerialPort.DtrEnable = false;
+                    break;
+                case FlowControl.Dsr_Dtr:
+                    SerialPort.Handshake = Handshake.None;
+                    SerialPort.DtrEnable = true;
+                    break;
+                case FlowControl.Xon_Xoff:
+                    SerialPort.Handshake = Handshake.XOnXOff;
+                    SerialPort.DtrEnable = false;
+                    break;
+                case FlowControl.None:
+                    SerialPort.Handshake = Handshake.None;
+                    SerialPort.DtrEnable = false;
+                    break;
+                default:
+                    SerialPort.Handshake = Handshake.None;
+                    SerialPort.DtrEnable = false;
+                    break;
+            }
+        }
     }
 
     public class SerialPortWrapper
