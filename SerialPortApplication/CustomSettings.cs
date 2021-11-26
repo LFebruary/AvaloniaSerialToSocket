@@ -1,18 +1,19 @@
 ﻿using SerialPortApplication.Properties;
-using SerialPortTest;
 using System;
-using static SerialPortTest.SerialPortTools;
+using System.Collections.Specialized;
+using static SerialPortApplication.SerialPortTools;
 
 namespace SerialPortApplication
 {
     public static partial class CustomSettings
     {
+
         private static string DefaultIfInvalid(string value, string defaultValue) => string.IsNullOrWhiteSpace(value) ? defaultValue : value;
         public static string GetSetting(StringSetting setting)
         {
             return setting switch
             {
-                StringSetting.ComPort                   => Settings.Default.Port,
+                StringSetting.ComPort                   => Settings.Default.SerialPort,
 
                 StringSetting.Parity                    => DefaultIfInvalid(
                     ParityValues.Contains(Settings.Default.Parity)
@@ -20,7 +21,7 @@ namespace SerialPortApplication
                         : DefaultParity,
                     DefaultParity),
 
-                StringSetting.FlowControl               => Settings.Default.Flow_control,
+                StringSetting.FlowControl               => DefaultIfInvalid(Settings.Default.Flow_control, FlowControlNone),
                 StringSetting.StabilityIndicatorSnippet => DefaultIfInvalid(Settings.Default.Stability_indicator_snippet, DefaultStabilityIndicatorSnippet),
                 _ => throw new ArgumentOutOfRangeException(nameof(setting)),
             };
@@ -31,7 +32,7 @@ namespace SerialPortApplication
             switch (setting)
             {
                 case StringSetting.ComPort:
-                    Settings.Default.Port = value;
+                    Settings.Default.SerialPort = value;
                     break;
                 case StringSetting.Parity:
                     Settings.Default.Parity = value;
@@ -74,7 +75,8 @@ namespace SerialPortApplication
                 IntSetting.IdenticalReadingQuantity         => DefaultIfInvalid(Settings.Default.Number_of_identical_readings, DefaultIdenticalReadingQuantity),
                 IntSetting.ScaleStringWeightStartPosition   => DefaultIfInvalid(Settings.Default.Scale_string_weight_start_position, DefaultScaleStringWeightStartPosition),
                 IntSetting.ScaleStringWeightEndPosition     => DefaultIfInvalid(Settings.Default.Scale_string_weight_end_position, DefaultScaleStringWeightEndPosition),
-                IntSetting.ScaleStringRequiredLength         => DefaultIfInvalid(Settings.Default.Scale_string_minimum_length, DefaultScaleStringMinimumLength),
+                IntSetting.ScaleStringRequiredLength        => DefaultIfInvalid(Settings.Default.Scale_string_minimum_length, DefaultScaleStringMinimumLength),
+                IntSetting.BroadcastPort                    => DefaultIfInvalid(Settings.Default.BroadcastPort, SocketTools.DefaultBroadcastPort),
                 _ => throw new ArgumentOutOfRangeException(nameof(setting)),
             };
         }
@@ -107,6 +109,9 @@ namespace SerialPortApplication
                 case IntSetting.ScaleStringRequiredLength:
                     Settings.Default.Scale_string_minimum_length = value;
                     break;
+                case IntSetting.BroadcastPort:
+                    Settings.Default.BroadcastPort = value;
+                    break;
             }
         }
 
@@ -116,7 +121,8 @@ namespace SerialPortApplication
             {
                 BoolSetting.StabilityIndicatorActive            => Settings.Default.Stability_indicator_active,
                 BoolSetting.SequenceOfIdenticalReadingsActive   => Settings.Default.Sequence_of_identical_readings_active,
-                BoolSetting.ScaleStringRequiredLength      => Settings.Default.Scale_string_must_conform_to_length,
+                BoolSetting.ScaleStringRequiredLength           => Settings.Default.Scale_string_must_conform_to_length,
+                BoolSetting.TakeFullScaleString                 => Settings.Default.Take_full_scale_string,
                 _ => throw new ArgumentOutOfRangeException(nameof(setting)),
             };
         }
@@ -134,7 +140,44 @@ namespace SerialPortApplication
                 case BoolSetting.ScaleStringRequiredLength:
                     Settings.Default.Scale_string_must_conform_to_length = value;
                     break;
+                case BoolSetting.TakeFullScaleString:
+                    Settings.Default.Take_full_scale_string = value;
+                    break;
             }
+        }
+
+        internal static StringCollection GetSetting(StringCollectionSetting setting)
+        {
+            return setting switch
+            {
+                StringCollectionSetting.CollectionOfReceivedValues => Settings.Default.Received_values,
+                _ => throw new ArgumentOutOfRangeException(nameof(setting)),
+            };
+        }
+
+        internal static void SetSetting(this StringCollectionSetting setting, StringCollection value)
+        {
+            switch (setting)
+            {
+                case StringCollectionSetting.CollectionOfReceivedValues:
+                    Settings.Default.Received_values = value;
+                    break;
+            }
+        }
+
+        internal static void Add(this StringCollectionSetting setting, string value)
+        {
+            switch (setting)
+            {
+                case StringCollectionSetting.CollectionOfReceivedValues:
+                    Settings.Default.Received_values.Insert(0, value);
+                    break;
+            }
+        }
+
+        internal static void ClearCollectionOfReceivedValues()
+        {
+            SetSetting(StringCollectionSetting.CollectionOfReceivedValues, new StringCollection());
         }
 
         public enum StringSetting
@@ -145,12 +188,7 @@ namespace SerialPortApplication
             StabilityIndicatorSnippet
         }
 
-        public enum ParityOption
-        {
-            Even,
-            Odd,
-            None
-        }
+        
 
         public enum IntSetting
         {
@@ -161,14 +199,29 @@ namespace SerialPortApplication
             IdenticalReadingQuantity,
             ScaleStringWeightStartPosition,
             ScaleStringWeightEndPosition,
-            ScaleStringRequiredLength
+            ScaleStringRequiredLength,
+            BroadcastPort
         }
 
         public enum BoolSetting
         {
             StabilityIndicatorActive,
             SequenceOfIdenticalReadingsActive,
-            ScaleStringRequiredLength
+            ScaleStringRequiredLength,
+            TakeFullScaleString
+        }
+
+        internal enum StringCollectionSetting
+        {
+            CollectionOfReceivedValues
+        }
+
+        internal enum FlowControl
+        {
+            Ctr_Rts,
+            Dsr_Dtr,
+            Xon_Xoff,
+            None
         }
     }
 }

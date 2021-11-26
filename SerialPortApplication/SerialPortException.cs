@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace SerialPortTest
+namespace SerialPortApplication
 {
     [Serializable]
     internal class SerialPortException : Exception

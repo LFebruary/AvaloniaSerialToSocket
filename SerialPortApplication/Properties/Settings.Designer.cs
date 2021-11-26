@@ -26,12 +26,12 @@ namespace SerialPortApplication.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string Port {
+        public string SerialPort {
             get {
-                return ((string)(this["Port"]));
+                return ((string)(this["SerialPort"]));
             }
             set {
-                this["Port"] = value;
+                this["SerialPort"] = value;
             }
         }
         
@@ -157,7 +157,7 @@ namespace SerialPortApplication.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        [global::System.Configuration.DefaultSettingValueAttribute("11")]
         public int Scale_string_weight_start_position {
             get {
                 return ((int)(this["Scale_string_weight_start_position"]));
@@ -169,7 +169,7 @@ namespace SerialPortApplication.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("5")]
+        [global::System.Configuration.DefaultSettingValueAttribute("18")]
         public int Scale_string_weight_end_position {
             get {
                 return ((int)(this["Scale_string_weight_end_position"]));
@@ -193,12 +193,12 @@ namespace SerialPortApplication.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        public global::System.Collections.Specialized.StringCollection Received_and_processed_values {
+        public global::System.Collections.Specialized.StringCollection Received_values {
             get {
-                return ((global::System.Collections.Specialized.StringCollection)(this["Received_and_processed_values"]));
+                return ((global::System.Collections.Specialized.StringCollection)(this["Received_values"]));
             }
             set {
-                this["Received_and_processed_values"] = value;
+                this["Received_values"] = value;
             }
         }
         
@@ -211,6 +211,30 @@ namespace SerialPortApplication.Properties {
             }
             set {
                 this["Scale_string_must_conform_to_length"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool Take_full_scale_string {
+            get {
+                return ((bool)(this["Take_full_scale_string"]));
+            }
+            set {
+                this["Take_full_scale_string"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("5050")]
+        public int BroadcastPort {
+            get {
+                return ((int)(this["BroadcastPort"]));
+            }
+            set {
+                this["BroadcastPort"] = value;
             }
         }
     }

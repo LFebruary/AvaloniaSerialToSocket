@@ -2,7 +2,7 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="SerialPortApplication.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="Port" Type="System.String" Scope="User">
+    <Setting Name="SerialPort" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="BaudRate" Type="System.Int32" Scope="User">
@@ -36,19 +36,25 @@
       <Value Profile="(Default)">5</Value>
     </Setting>
     <Setting Name="Scale_string_weight_start_position" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">1</Value>
+      <Value Profile="(Default)">11</Value>
     </Setting>
     <Setting Name="Scale_string_weight_end_position" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">5</Value>
+      <Value Profile="(Default)">18</Value>
     </Setting>
     <Setting Name="Scale_string_minimum_length" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">17</Value>
     </Setting>
-    <Setting Name="Received_and_processed_values" Type="System.Collections.Specialized.StringCollection" Scope="User">
+    <Setting Name="Received_values" Type="System.Collections.Specialized.StringCollection" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="Scale_string_must_conform_to_length" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="Take_full_scale_string" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="BroadcastPort" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">5050</Value>
     </Setting>
   </Settings>
 </SettingsFile>
