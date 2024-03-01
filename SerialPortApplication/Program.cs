@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.ReactiveUI;
 using System;
 
-namespace SerialPortApplication
+namespace SerialToSocket.AvaloniaApp
 {
     class Program
     {

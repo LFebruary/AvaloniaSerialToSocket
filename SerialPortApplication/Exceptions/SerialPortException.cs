@@ -1,9 +1,11 @@
-﻿using System;
-using System.Runtime.Serialization;
+﻿// AvaloniaSerialToSocket https://github.com/LFebruary/AvaloniaSerialToSocket 
+// (c) 2024 Lyle February 
+// Released under the MIT License
 
-namespace SerialPortApplication
+using System;
+
+namespace SerialToSocket.AvaloniaApp.Exceptions
 {
-    [Serializable]
     internal class SerialPortException : Exception
     {
         public SerialPortException()
@@ -15,10 +17,6 @@ namespace SerialPortApplication
         }
 
         public SerialPortException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
-
-        protected SerialPortException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
     }
