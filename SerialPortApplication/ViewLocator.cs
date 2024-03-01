@@ -1,16 +1,29 @@
+// AvaloniaSerialToSocket https://github.com/LFebruary/AvaloniaSerialToSocket 
+// (c) 2024 Lyle February 
+// Released under the MIT License
+
+using System;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using SerialPortApplication.ViewModels;
-using System;
+using SerialToSocket.AvaloniaApp.ViewModels;
 
-namespace SerialPortApplication
+namespace SerialToSocket.AvaloniaApp
 {
     public class ViewLocator : IDataTemplate
     {
-        public IControl Build(object data)
+        public bool Match(object? data)
         {
-            var name = data.GetType().FullName!.Replace("ViewModel", "View");
-            var type = Type.GetType(name);
+            return data is ViewModelBase;
+        }
+
+        Control? ITemplate<object?, Control?>.Build(object? param)
+        {
+            if (param is null)
+                return new TextBlock { Text = "Not Found: Builder param not specified" };
+
+            string name = param.GetType().FullName!.Replace("ViewModel", "View");
+
+            Type? type = Type.GetType(name);
 
             if (type != null)
             {
@@ -20,11 +33,6 @@ namespace SerialPortApplication
             {
                 return new TextBlock { Text = "Not Found: " + name };
             }
-        }
-
-        public bool Match(object data)
-        {
-            return data is ViewModelBase;
         }
     }
 }

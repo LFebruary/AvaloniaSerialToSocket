@@ -1,11 +1,14 @@
+// AvaloniaSerialToSocket https://github.com/LFebruary/AvaloniaSerialToSocket 
+// (c) 2024 Lyle February 
+// Released under the MIT License
+
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using SerialPortApplication.ViewModels;
-using SerialPortApplication.Views;
-using System.Collections.Specialized;
+using SerialToSocket.AvaloniaApp.Enums.Settings;
+using SerialToSocket.AvaloniaApp.Views;
 
-namespace SerialPortApplication
+namespace SerialToSocket.AvaloniaApp
 {
     public class App : Application
     {
@@ -13,7 +16,7 @@ namespace SerialPortApplication
         {
             AvaloniaXamlLoader.Load(this);
 
-            CustomSettings.SetSetting(CustomSettings.StringCollectionSetting.CollectionOfReceivedValues, new StringCollection());
+            StringCollectionSetting.CollectionOfReceivedValues.SetSetting([]);
         }
 
         public override void OnFrameworkInitializationCompleted()

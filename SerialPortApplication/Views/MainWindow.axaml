@@ -1,12 +1,12 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:SerialPortApplication.ViewModels"
+        xmlns:vm="using:SerialToSocket.AvaloniaApp.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" MinWidth="875" MinHeight="550"
-        x:Class="SerialPortApplication.Views.MainWindow"
+        x:Class="SerialToSocket.AvaloniaApp.Views.MainWindow"
         Icon="/Assets/avalonia-logo.ico"
-        Title="SerialPortApplication">
+        Title="Serial to socket">
 
     <Design.DataContext>
         <vm:MainWindowViewModel/>
@@ -43,7 +43,8 @@
 						<RowDefinition Height="Auto" />
 					</Grid.RowDefinitions>
 					<Label Content="_Port:" Grid.Column="0" VerticalAlignment="Center" Grid.Row="0" FontSize="12"/>
-					<ComboBox PlaceholderText="Select COM port" Grid.Column="2" SelectedItem="{Binding SelectedComPort}" Items="{Binding ComPorts}" Width="140" HorizontalContentAlignment="Stretch" Margin="16,0,0,0" Grid.Row="0" FontSize="12"/>
+					<!-- 
+						<ComboBox PlaceholderText="Select COM port" Grid.Column="2" SelectedItem="{Binding SelectedComPort}" Items="{Binding ComPorts}" Width="140" HorizontalContentAlignment="Stretch" Margin="16,0,0,0" Grid.Row="0" FontSize="12"></ComboBox>
 				
 					<Label Content="_Baud:" Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" Margin="0,16,0,0" FontSize="12"/>
 					<ComboBox PlaceholderText="Select baud rate" Grid.Row="1" Width="140" Grid.Column="2" Margin="16,16,0,0" FontSize="12" SelectedItem="{Binding SelectedBaudRate}" Items="{Binding BaudRates}"/>
@@ -52,7 +53,7 @@
 					<ComboBox PlaceholderText="Select databits" Items="{Binding DataBits}" SelectedItem="{Binding SelectedDataBits}" Grid.Row="2" Width="140" Grid.Column="2" Margin="16,16,0,0" FontSize="12"/>
 				
 					<Label Content="_Stop bits:" Grid.Column="0" Grid.Row="3" VerticalAlignment="Center" Margin="0,16,0,8" FontSize="12"/>
-					<ComboBox PlaceholderText="Select stop bits" Items="{Binding StopBits}" SelectedItem="{Binding SelectedStopBits}" Grid.Row="3" Width="140" Grid.Column="2" Margin="16,16,0,8" FontSize="12"/>
+					<ComboBox PlaceholderText="Select stop bits" Items="{Binding StopBits}" SelectedItem="{Binding SelectedStopBits}" Grid.Row="3" Width="140" Grid.Column="2" Margin="16,16,0,8" FontSize="12"/> -->
 				</Grid>
 			</Border>
 		</StackPanel>

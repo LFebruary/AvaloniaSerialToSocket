@@ -1,23 +1,33 @@
+// AvaloniaSerialToSocket https://github.com/LFebruary/AvaloniaSerialToSocket 
+// (c) 2024 Lyle February 
+// Released under the MIT License
+
+using Avalonia.Controls;
+using SerialToSocket.AvaloniaApp;
+using SerialToSocket.AvaloniaApp.Constants;
+using SerialToSocket.AvaloniaApp.Enums.Settings;
+using SerialToSocket.AvaloniaApp.Exceptions;
+using SerialToSocket.AvaloniaApp.Models;
+using SerialToSocket.AvaloniaApp.Utils;
+using SerialToSocket.AvaloniaApp.Views;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using static SerialPortApplication.CustomSettings;
-using System.IO.Ports;
-using SerialPortApplication.Views;
-using System.Threading.Tasks;
-using static SerialPortApplication.Views.MessageBox;
 using System.Collections.Specialized;
-using Avalonia.Controls;
 using System.Diagnostics;
+using System.IO.Ports;
+using System.Linq;
+using System.Threading.Tasks;
+using static SerialToSocket.AvaloniaApp.CustomSettings;
+using static SerialToSocket.AvaloniaApp.Views.MessageBox;
 
-namespace SerialPortApplication.ViewModels
+namespace SerialToSocket.AvaloniaApp.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
-        public MainWindowViewModel(MainWindow window): base(window)
+        public MainWindowViewModel(MainWindow window) : base(window)
         {
-            SelectedParity      = GetParityOptionFromString(GetSetting(StringSetting.Parity));
-            SelectedFlowControl = GetFlowControlFromString(GetSetting(StringSetting.FlowControl));
+            SelectedParity = _GetParityOptionFromString(GetSetting(StringSetting.Parity));
+            SelectedFlowControl = _GetFlowControlFromString(GetSetting(StringSetting.FlowControl));
         }
 
         public void BroadcastSerialValuesCommand()
@@ -27,11 +37,11 @@ namespace SerialPortApplication.ViewModels
                 bool tempValue = !BroadcastingSerialValues;
                 if (tempValue)
                 {
-                    SocketTools.StartServer();
+                    NetworkUtils.StartServer();
                 }
                 else
                 {
-                    SocketTools.StopServer();
+                    NetworkUtils.StopServer();
                 }
                 BroadcastingSerialValues = tempValue;
             }
@@ -40,13 +50,13 @@ namespace SerialPortApplication.ViewModels
         {
             async Task ErrorMessageBox(string message)
             {
-                _ = await Show(parentView, message, "Error", MessageBoxButtons.Ok);
+                _ = await Show(ParentView, message, "Error", MessageBoxButtons.Ok);
             }
 
             bool tempValue = !ListeningOnSerialPort;
             if (tempValue)
             {
-               
+
                 if (string.IsNullOrWhiteSpace(SelectedComPort))
                 {
                     await ErrorMessageBox("Selected port is blank");
@@ -59,7 +69,7 @@ namespace SerialPortApplication.ViewModels
                 }
                 else if (SelectedBaudRate <= 0 || BaudRates.Contains(SelectedBaudRate) == false)
                 {
-                    MessageBoxResult result = await Show(parentView, "An invalid baud rate has been specified. Is this correct?", "Error", MessageBoxButtons.YesNo);
+                    MessageBoxResult result = await Show(ParentView, "An invalid baud rate has been specified. Is this correct?", "Error", MessageBoxButtons.YesNo);
                     if (result == MessageBoxResult.No)
                     {
                         return;
@@ -80,15 +90,15 @@ namespace SerialPortApplication.ViewModels
                     await ErrorMessageBox("No parity selected");
                     return;
                 }
-                else if ((StabilityIndicatorActive == false && SequenceOfIdenticalReadingsActive == false)
-                || (StabilityIndicatorActive && SequenceOfIdenticalReadingsActive))
+                else if (StabilityIndicatorActive == false && SequenceOfIdenticalReadingsActive == false
+                || StabilityIndicatorActive && SequenceOfIdenticalReadingsActive)
                 {
                     await ErrorMessageBox("Somehow both the stability indicator and sequence of identical readers got the same selection. Reselect one of the options and try again");
                     return;
                 }
                 else if (StabilityIndicatorActive && string.IsNullOrWhiteSpace(StabilityIndicatorSnippet))
                 {
-                    MessageBoxResult result = await Show(parentView, "Stability indicator active, but no character snippet provided. Is this correct?", "Error", MessageBoxButtons.YesNo);
+                    MessageBoxResult result = await Show(ParentView, "Stability indicator active, but no character snippet provided. Is this correct?", "Error", MessageBoxButtons.YesNo);
                     if (result == MessageBoxResult.No)
                     {
                         return;
@@ -99,7 +109,7 @@ namespace SerialPortApplication.ViewModels
                     await ErrorMessageBox("Stability indicator can not start at position lower than one.");
                     return;
                 }
-                else if (SequenceOfIdenticalReadingsActive && (NumberOfIdenticalReadings <= 0))
+                else if (SequenceOfIdenticalReadingsActive && NumberOfIdenticalReadings <= 0)
                 {
                     await ErrorMessageBox("Number of readings for sequence of identical readings can not be lower than one.");
                     return;
@@ -109,12 +119,12 @@ namespace SerialPortApplication.ViewModels
                     await ErrorMessageBox("Scale string settings have to indications positions greater than or equal to zero.");
                     return;
                 }
-                else if ((TakeFullWeightString == false) && (WeightStartPosition != WeightEndPosition) && (WeightEndPosition <= WeightStartPosition))
+                else if (TakeFullWeightString == false && WeightStartPosition != WeightEndPosition && WeightEndPosition <= WeightStartPosition)
                 {
                     await ErrorMessageBox("Scale string's end position can not be less than starting position.");
                     return;
                 }
-                else if (StringRequiredLengthActive && (ScaleStringRequiredLength <= 0))
+                else if (StringRequiredLengthActive && ScaleStringRequiredLength <= 0)
                 {
                     await ErrorMessageBox("Scale string required length setting requires a length greater than zero");
                     return;
@@ -122,8 +132,8 @@ namespace SerialPortApplication.ViewModels
 
                 try
                 {
-                    SerialPortTools.GetPortAndStartListening();
-                    SerialPortTools.ValueUpdatedCallback = (value) =>
+                    SerialPortUtils.StartListening();
+                    SerialPortUtils.OnValueUpdated = (value) =>
                     {
                         LastReceivedValue = value;
                     };
@@ -131,18 +141,18 @@ namespace SerialPortApplication.ViewModels
                 catch (SerialPortException exception)
                 {
                     await ErrorMessageBox(exception.Message);
-                    SerialPortTools.ForcefulClose();
+                    SerialPortUtils.ForceClose();
                     return;
                 }
             }
             else
             {
-                SerialPortTools.ValueUpdatedCallback = (_) => { };
-                SerialPortTools.StopListeningOnPort();
-                
+                SerialPortUtils.OnValueUpdated = (_) => { };
+                SerialPortUtils.StopListening();
+
                 if (BroadcastingSerialValues)
                 {
-                    SocketTools.StopServer();
+                    NetworkUtils.StopServer();
                     BroadcastingSerialValues = false;
                 }
             }
@@ -192,13 +202,14 @@ namespace SerialPortApplication.ViewModels
         public string SelectedComPort
         {
             get => _selectedComPort;
-            set => SetProperty(ref _selectedComPort, value, () => {
+            set => SetProperty(ref _selectedComPort, value, () =>
+            {
                 OnPropertyChanged(nameof(SelectSerialPort));
-                CustomSettings.SetSetting(StringSetting.ComPort, SelectedComPort.Trim());
+                StringSetting.ComPort.SetSetting(SelectedComPort.Trim());
             });
         }
-        public SerialPortWrapper? SelectSerialPort => string.IsNullOrEmpty(SelectedComPort) 
-            ? null 
+        public SerialPortWrapper? SelectSerialPort => string.IsNullOrEmpty(SelectedComPort)
+            ? null
             : SerialPorts.FirstOrDefault(i => i.SerialPortID == SelectedComPort);
 
 
@@ -206,35 +217,35 @@ namespace SerialPortApplication.ViewModels
         public int SelectedBaudRate
         {
             get => _selectedBaudRate;
-            set => SetProperty(ref _selectedBaudRate, value, () => 
-            { 
-                CustomSettings.SetSetting(IntSetting.BaudRate, SelectedBaudRate); 
+            set => SetProperty(ref _selectedBaudRate, value, () =>
+            {
+                IntSetting.BaudRate.SetSetting(SelectedBaudRate);
             });
         }
 
-        private string _LastReceivedValue = string.Empty;
+        private string _lastReceivedValue = string.Empty;
         public string LastReceivedValue
         {
-            get => _LastReceivedValue;
-            set 
+            get => _lastReceivedValue;
+            set
             {
-                if (_LastReceivedValue != value)
+                if (_lastReceivedValue != value)
                 {
-                    _LastReceivedValue = value;
+                    _lastReceivedValue = value;
                     OnPropertyChanged();
                 }
 
-                CustomSettings.Add(StringCollectionSetting.CollectionOfReceivedValues, LastReceivedValue);
+                StringCollectionSetting.CollectionOfReceivedValues.Add(LastReceivedValue);
                 OnPropertyChanged(nameof(LastProcessedValue));
 
             }
         }
 
         private static StringCollection ReceivedValues => GetSetting(StringCollectionSetting.CollectionOfReceivedValues);
-        
-        public string LastProcessedValue => ProcessReading(LastReceivedValue);
 
-        private string ProcessReading(string lastReceivedValue)
+        public string LastProcessedValue => _ProcessReading(LastReceivedValue);
+
+        private string _ProcessReading(string lastReceivedValue)
         {
             if (StabilityIndicatorActive)
             {
@@ -242,7 +253,7 @@ namespace SerialPortApplication.ViewModels
                 {
                     return invalidValue;
                 }
-                
+
                 string refSnippet = lastReceivedValue.Substring(StabilityIndicatorStartingPosition - 1, StabilityIndicatorSnippet.Length);
                 if (refSnippet != StabilityIndicatorSnippet)
                 {
@@ -296,7 +307,7 @@ namespace SerialPortApplication.ViewModels
             }
             else
             {
-                string userSpecifiedString = lastReceivedValue[(WeightStartPosition - 1)..(WeightEndPosition)];
+                string userSpecifiedString = lastReceivedValue[(WeightStartPosition - 1)..WeightEndPosition];
                 return userSpecifiedString.Any(char.IsLetter)
                     ? $"{userSpecifiedString} ({new string(userSpecifiedString.Where(i => char.IsNumber(i) || i == '.' || i == ',').ToArray())})"
                     : userSpecifiedString;
@@ -305,7 +316,7 @@ namespace SerialPortApplication.ViewModels
 
         private const string invalidValue = "NAN";
 
-        private IEnumerable<int> _baudRates = SerialPortTools.BaudRates;
+        private IEnumerable<int> _baudRates = SerialConstants.BaudRates;
         public IEnumerable<int> BaudRates
         {
             get => _baudRates;
@@ -316,13 +327,13 @@ namespace SerialPortApplication.ViewModels
         public int SelectedDataBits
         {
             get => _selectedDataBits;
-            set => SetProperty(ref _selectedDataBits, value, () => 
-            { 
-                CustomSettings.SetSetting(IntSetting.Databits, SelectedDataBits); 
+            set => SetProperty(ref _selectedDataBits, value, () =>
+            {
+                IntSetting.Databits.SetSetting(SelectedDataBits);
             });
         }
 
-        private IEnumerable<int> _dataBits = SerialPortTools.DataBits;
+        private IEnumerable<int> _dataBits = SerialConstants.DataBits;
         public IEnumerable<int> DataBits
         {
             get => _dataBits;
@@ -333,13 +344,13 @@ namespace SerialPortApplication.ViewModels
         public int SelectedStopBits
         {
             get => _selectedStopBits;
-            set => SetProperty(ref _selectedStopBits, value, () => 
+            set => SetProperty(ref _selectedStopBits, value, () =>
             {
-                CustomSettings.SetSetting(IntSetting.Stopbits, SelectedStopBits); 
+                IntSetting.Stopbits.SetSetting(SelectedStopBits);
             });
         }
 
-        private IEnumerable<int> _stopBits = SerialPortTools.StopBits;
+        private IEnumerable<int> _stopBits = SerialConstants.StopBits;
         public IEnumerable<int> StopBits
         {
             get => _stopBits;
@@ -347,120 +358,122 @@ namespace SerialPortApplication.ViewModels
         }
 
         private FlowControl? _selectedFlowControl;
-        private static FlowControl? GetFlowControlFromString(string flowControlString)
+        private static FlowControl? _GetFlowControlFromString(string flowControlString)
         {
             return flowControlString switch
             {
-                SerialPortTools.FlowControlCtsRts   => FlowControl.Ctr_Rts,
-                SerialPortTools.FlowControlDsrDtr   => FlowControl.Dsr_Dtr,
-                SerialPortTools.FlowControlXonXoff  => FlowControl.Xon_Xoff,
-                SerialPortTools.FlowControlNone     => FlowControl.None,
+                SerialConstants.FlowControlCtsRts => FlowControl.Ctr_Rts,
+                SerialConstants.FlowControlDsrDtr => FlowControl.Dsr_Dtr,
+                SerialConstants.FlowControlXonXoff => FlowControl.Xon_Xoff,
+                SerialConstants.FlowControlNone => FlowControl.None,
                 _ => null,
             };
         }
         private FlowControl? SelectedFlowControl
         {
             get => _selectedFlowControl;
-            set => SetProperty(ref _selectedFlowControl, value, () => {
-                SerialPortTools.SetFlowControl(SelectedFlowControl);
+            set => SetProperty(ref _selectedFlowControl, value, () =>
+            {
+                SerialPortUtils.SetFlowControl(SelectedFlowControl);
                 switch (_selectedFlowControl)
                 {
                     case FlowControl.Ctr_Rts:
-                        CtsRtsSelected  = true;
-                        DsrDtrSelected  = false;
+                        CtsRtsSelected = true;
+                        DsrDtrSelected = false;
                         XonXoffSelected = false;
-                        NoneSelected    = false;
-                        CustomSettings.SetSetting(StringSetting.FlowControl, SerialPortTools.FlowControlCtsRts);
+                        NoneSelected = false;
+                        StringSetting.FlowControl.SetSetting(SerialConstants.FlowControlCtsRts);
                         break;
                     case FlowControl.Dsr_Dtr:
-                        CtsRtsSelected  = false;
-                        DsrDtrSelected  = true;
+                        CtsRtsSelected = false;
+                        DsrDtrSelected = true;
                         XonXoffSelected = false;
-                        NoneSelected    = false;
-                        CustomSettings.SetSetting(StringSetting.FlowControl, SerialPortTools.FlowControlDsrDtr);
+                        NoneSelected = false;
+                        StringSetting.FlowControl.SetSetting(SerialConstants.FlowControlDsrDtr);
                         break;
                     case FlowControl.Xon_Xoff:
-                        CtsRtsSelected  = false;
-                        DsrDtrSelected  = false;
+                        CtsRtsSelected = false;
+                        DsrDtrSelected = false;
                         XonXoffSelected = true;
-                        NoneSelected    = false;
-                        CustomSettings.SetSetting(StringSetting.FlowControl, SerialPortTools.FlowControlXonXoff);
-                        break; 
+                        NoneSelected = false;
+                        StringSetting.FlowControl.SetSetting(SerialConstants.FlowControlXonXoff);
+                        break;
                     case FlowControl.None:
-                        CtsRtsSelected  = false;
-                        DsrDtrSelected  = false;
+                        CtsRtsSelected = false;
+                        DsrDtrSelected = false;
                         XonXoffSelected = true;
-                        NoneSelected    = true;
-                        CustomSettings.SetSetting(StringSetting.FlowControl, SerialPortTools.FlowControlNone);
+                        NoneSelected = true;
+                        StringSetting.FlowControl.SetSetting(SerialConstants.FlowControlNone);
                         break;
                 }
             });
         }
 
-        private bool _CtsRtsSelected;
+        private bool _ctsRtsSelected;
         public bool CtsRtsSelected
         {
-            get => _CtsRtsSelected;
-            set => SetProperty(ref _CtsRtsSelected, value);
+            get => _ctsRtsSelected;
+            set => SetProperty(ref _ctsRtsSelected, value);
         }
 
-        private bool _DsrDtrSelected;
+        private bool _dsrDtrSelected;
         public bool DsrDtrSelected
         {
-            get => _DsrDtrSelected;
-            set => SetProperty(ref _DsrDtrSelected, value);
+            get => _dsrDtrSelected;
+            set => SetProperty(ref _dsrDtrSelected, value);
         }
 
-        private bool _XonXoffSelected;
+        private bool _xonXoffSelected;
         public bool XonXoffSelected
         {
-            get => _XonXoffSelected;
-            set => SetProperty(ref _XonXoffSelected, value);
+            get => _xonXoffSelected;
+            set => SetProperty(ref _xonXoffSelected, value);
         }
 
-        private bool _NoneSelected;
+        private bool _noneSelected;
         public bool NoneSelected
         {
-            get => _NoneSelected;
-            set => SetProperty(ref _NoneSelected, value);
+            get => _noneSelected;
+            set => SetProperty(ref _noneSelected, value);
         }
         #region Parity
         private Parity? _selectedParity = null;
 
-        private static Parity? GetParityOptionFromString(string parityString)
+        private static Parity? _GetParityOptionFromString(string parityKey)
         {
-            return parityString switch
+            return parityKey switch
             {
-                SerialPortTools.EvenParity  => Parity.Even,
-                SerialPortTools.OddParity   => Parity.Odd,
-                SerialPortTools.NoParity    => Parity.None,
-                _           => null,
+                SerialConstants.EvenParity => Parity.Even,
+                SerialConstants.OddParity => Parity.Odd,
+                SerialConstants.NoParity => Parity.None,
+                _ => null,
             };
         }
 
         public Parity? SelectedParity
         {
             get => _selectedParity;
-            set => SetProperty(ref _selectedParity, value, () => {
+            set => SetProperty(ref _selectedParity, value, () =>
+            {
                 switch (_selectedParity)
                 {
                     case Parity.Even:
                         EvenParityChecked = true;
                         OddParityChecked = false;
                         NoneParityChecked = false;
-                        CustomSettings.SetSetting(StringSetting.Parity, SerialPortTools.EvenParity);
+                        StringSetting.Parity.SetSetting(SerialConstants.EvenParity);
                         break;
                     case Parity.Odd:
                         EvenParityChecked = false;
                         OddParityChecked = true;
                         NoneParityChecked = false;
-                        CustomSettings.SetSetting(StringSetting.Parity, SerialPortTools.OddParity);
+                        StringSetting.Parity.SetSetting(SerialConstants.OddParity);
                         break;
                     case Parity.None:
                         EvenParityChecked = false;
                         OddParityChecked = false;
                         NoneParityChecked = true;
-                        CustomSettings.SetSetting(StringSetting.Parity, SerialPortTools.NoParity);
+                        StringSetting.Parity.SetSetting(SerialConstants.NoParity);
                         break;
                     default:
                         break;
@@ -497,8 +510,8 @@ namespace SerialPortApplication.ViewModels
             get => _stabilityIndicatorActive;
             set => SetProperty(ref _stabilityIndicatorActive, value, () =>
             {
-                CustomSettings.SetSetting(BoolSetting.SequenceOfIdenticalReadingsActive, !value);
-                CustomSettings.SetSetting(BoolSetting.StabilityIndicatorActive, value);
+                BoolSetting.SequenceOfIdenticalReadingsActive.SetSetting(!value);
+                BoolSetting.StabilityIndicatorActive.SetSetting(value);
 
                 SequenceOfIdenticalReadingsActive = !value;
                 OnPropertyChanged(nameof(LastProcessedValue));
@@ -509,10 +522,10 @@ namespace SerialPortApplication.ViewModels
         public bool SequenceOfIdenticalReadingsActive
         {
             get => _sequenceOfIdenticalReadingsActive;
-            set => SetProperty(ref _sequenceOfIdenticalReadingsActive, value, () => 
-            { 
-                CustomSettings.SetSetting(BoolSetting.StabilityIndicatorActive, !value);
-                CustomSettings.SetSetting(BoolSetting.SequenceOfIdenticalReadingsActive, value);
+            set => SetProperty(ref _sequenceOfIdenticalReadingsActive, value, () =>
+            {
+                BoolSetting.StabilityIndicatorActive.SetSetting(!value);
+                BoolSetting.SequenceOfIdenticalReadingsActive.SetSetting(value);
 
                 StabilityIndicatorActive = !value;
                 OnPropertyChanged(nameof(LastProcessedValue));
@@ -523,9 +536,9 @@ namespace SerialPortApplication.ViewModels
         public string StabilityIndicatorSnippet
         {
             get => _stabilityIndicatorSnippet;
-            set => SetProperty(ref _stabilityIndicatorSnippet, value, () => 
+            set => SetProperty(ref _stabilityIndicatorSnippet, value, () =>
             {
-                CustomSettings.SetSetting(StringSetting.StabilityIndicatorSnippet, value);
+                StringSetting.StabilityIndicatorSnippet.SetSetting(value);
                 OnPropertyChanged(nameof(LastProcessedValue));
             });
         }
@@ -534,9 +547,9 @@ namespace SerialPortApplication.ViewModels
         public int StabilityIndicatorStartingPosition
         {
             get => _stabilityIndicatorStartingPosition;
-            set => SetProperty(ref _stabilityIndicatorStartingPosition, value, () => 
-            { 
-                CustomSettings.SetSetting(IntSetting.StabilityIndicatorStartPosition, StabilityIndicatorStartingPosition);
+            set => SetProperty(ref _stabilityIndicatorStartingPosition, value, () =>
+            {
+                IntSetting.StabilityIndicatorStartPosition.SetSetting(StabilityIndicatorStartingPosition);
                 OnPropertyChanged(nameof(LastProcessedValue));
             });
         }
@@ -547,7 +560,7 @@ namespace SerialPortApplication.ViewModels
             get => _numberOfIdenticalReadings;
             set => SetProperty(ref _numberOfIdenticalReadings, value, () =>
             {
-                CustomSettings.SetSetting(IntSetting.IdenticalReadingQuantity, NumberOfIdenticalReadings);
+                IntSetting.IdenticalReadingQuantity.SetSetting(NumberOfIdenticalReadings);
                 OnPropertyChanged(nameof(LastProcessedValue));
             });
         }
@@ -558,9 +571,9 @@ namespace SerialPortApplication.ViewModels
         public int WeightStartPosition
         {
             get => _weightStartPosition;
-            set => SetProperty(ref _weightStartPosition, value, () => 
+            set => SetProperty(ref _weightStartPosition, value, () =>
             {
-                CustomSettings.SetSetting(IntSetting.ScaleStringWeightStartPosition, WeightStartPosition);
+                IntSetting.ScaleStringWeightStartPosition.SetSetting(WeightStartPosition);
                 OnPropertyChanged(nameof(LastProcessedValue));
             });
         }
@@ -571,7 +584,7 @@ namespace SerialPortApplication.ViewModels
             get => _weightEndPosition;
             set => SetProperty(ref _weightEndPosition, value, () =>
             {
-                CustomSettings.SetSetting(IntSetting.ScaleStringWeightEndPosition, WeightEndPosition);
+                IntSetting.ScaleStringWeightEndPosition.SetSetting(WeightEndPosition);
                 OnPropertyChanged(nameof(LastProcessedValue));
             });
         }
@@ -582,7 +595,7 @@ namespace SerialPortApplication.ViewModels
             get => _stringRequiredLengthActive;
             set => SetProperty(ref _stringRequiredLengthActive, value, () =>
             {
-                CustomSettings.SetSetting(BoolSetting.ScaleStringRequiredLength, StringRequiredLengthActive);
+                BoolSetting.ScaleStringRequiredLength.SetSetting(StringRequiredLengthActive);
                 OnPropertyChanged(nameof(LastProcessedValue));
             });
         }
@@ -593,7 +606,7 @@ namespace SerialPortApplication.ViewModels
             get => _scaleStringRequiredLength;
             set => SetProperty(ref _scaleStringRequiredLength, value, () =>
             {
-                CustomSettings.SetSetting(IntSetting.ScaleStringRequiredLength, ScaleStringRequiredLength);
+                IntSetting.ScaleStringRequiredLength.SetSetting(ScaleStringRequiredLength);
                 OnPropertyChanged(nameof(LastProcessedValue));
             });
         }
@@ -618,7 +631,7 @@ namespace SerialPortApplication.ViewModels
                 {
                     return "Currently not listening to any serial port";
                 }
-                else if (SerialPortTools.IsPortOpen)
+                else if (SerialPortUtils.IsOpen)
                 {
                     return $"Currently listening to serial port {SelectedComPort} with:\nBaudrate {SelectedBaudRate}\nDatabits {SelectedDataBits}\nStop bits {SelectedStopBits}";
                 }
@@ -630,7 +643,7 @@ namespace SerialPortApplication.ViewModels
         }
 
         public string SocketConnectionCaptionText => BroadcastingSerialValues
-            ? $"Currently broadcasting values over\nsocket connection via: {SocketTools.ipAddress}:{SocketTools.Port}"
+            ? $"Currently broadcasting values over\nsocket connection via: {NetworkUtils.IpAddress}:{NetworkUtils.Port}"
             : "Values are not being broadcasted over\nsocket connection.";
 
         public string SocketConnectionButtonText => $"{(BroadcastingSerialValues ? "Stop" : "Start")} broadcasting serial readings";
@@ -651,37 +664,37 @@ namespace SerialPortApplication.ViewModels
 
             int BoundValue(int valueToBound, int minValue = 1, int maxValue = int.MaxValue)
             {
-                return valueToBound > maxValue 
-                    ? maxValue 
-                    : valueToBound < minValue 
-                        ? minValue 
+                return valueToBound > maxValue
+                    ? maxValue
+                    : valueToBound < minValue
+                        ? minValue
                         : valueToBound;
             }
 
             switch (selectedSpinner)
             {
                 case SetupSpinnerType.StabilityStart:
-                    StabilityIndicatorStartingPosition  = BoundValue(ChangeBasedOnDirection(StabilityIndicatorStartingPosition));
+                    StabilityIndicatorStartingPosition = BoundValue(ChangeBasedOnDirection(StabilityIndicatorStartingPosition));
                     break;
                 case SetupSpinnerType.IdenticalReadingQuantity:
-                    NumberOfIdenticalReadings           = BoundValue(ChangeBasedOnDirection(NumberOfIdenticalReadings));
+                    NumberOfIdenticalReadings = BoundValue(ChangeBasedOnDirection(NumberOfIdenticalReadings));
                     break;
                 case SetupSpinnerType.WeightStart:
-                    WeightStartPosition                 = BoundValue(ChangeBasedOnDirection(WeightStartPosition),0);
+                    WeightStartPosition = BoundValue(ChangeBasedOnDirection(WeightStartPosition), 0);
                     break;
                 case SetupSpinnerType.WeightEnd:
-                    WeightEndPosition                   = BoundValue(ChangeBasedOnDirection(WeightEndPosition), WeightStartPosition);
+                    WeightEndPosition = BoundValue(ChangeBasedOnDirection(WeightEndPosition), WeightStartPosition);
                     break;
                 case SetupSpinnerType.RequiredLength:
-                    ScaleStringRequiredLength           = BoundValue(ChangeBasedOnDirection(ScaleStringRequiredLength));
+                    ScaleStringRequiredLength = BoundValue(ChangeBasedOnDirection(ScaleStringRequiredLength));
                     break;
                 case SetupSpinnerType.BroadcastPort:
-                    CustomSettings.SetSetting(IntSetting.BroadcastPort, ChangeBasedOnDirection(SocketTools.Port));
+                    IntSetting.BroadcastPort.SetSetting(ChangeBasedOnDirection(NetworkUtils.Port));
                     OnPropertyChanged(nameof(Port));
                     break;
             }
         }
 
-        public static int Port => SocketTools.Port;
+        public static int Port => NetworkUtils.Port;
     }
 }

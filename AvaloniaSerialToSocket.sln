@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31229.75
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34622.214
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SerialPortTest", "SerialPortTest\SerialPortTest.csproj", "{97D22323-6193-47D2-8984-C0EA925BD87A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SerialToSocket.ConsoleApp", "SerialPortTest\SerialToSocket.ConsoleApp.csproj", "{97D22323-6193-47D2-8984-C0EA925BD87A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SerialPortApplication", "SerialPortApplication\SerialPortApplication.csproj", "{058F5295-482F-49B5-B542-79153CACE06F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SerialToSocket.AvaloniaApp", "SerialPortApplication\SerialToSocket.AvaloniaApp.csproj", "{058F5295-482F-49B5-B542-79153CACE06F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
